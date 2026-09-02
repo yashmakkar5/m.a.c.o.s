@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass, Sparkles } from "lucide-react";
+import { Compass, Sparkles, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function Navbar() {
@@ -23,14 +23,27 @@ export function Navbar() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <nav className="flex items-center gap-2 sm:gap-4">
+          <Link
+            href="/results"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground hidden sm:block"
+          >
+            Results Preview
+          </Link>
+          <Link
+            href="/debug"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1"
+          >
+            <Activity className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Diagnostics</span>
+          </Link>
           <Link href="/analyze">
-            <Button size="sm" className="gap-2 shadow-sm font-medium">
-              <Sparkles className="h-4 w-4" />
+            <Button size="sm" className="gap-2 shadow-sm font-medium text-xs">
+              <Sparkles className="h-3.5 w-3.5" />
               Build My Career Map
             </Button>
           </Link>
-        </div>
+        </nav>
       </div>
     </header>
   );

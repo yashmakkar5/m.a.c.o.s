@@ -1,35 +1,25 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   UploadCloud,
   FileText,
   Sparkles,
   ArrowRight,
   AlertCircle,
-  Loader2,
   CheckCircle2,
   ShieldCheck,
   Building,
   Target,
   FileCheck,
+  RefreshCw,
+  Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SYNTHETIC_RESUME_TEXT } from "@/lib/fixtures/syntheticResume";
 
-const ANALYSIS_STAGES = [
-  { id: "uploading", label: "Validating & uploading resume file..." },
-  { id: "extracting", label: "Extracting text and validating document structure..." },
-  { id: "profile", label: "Synthesizing candidate profile & demonstrated capabilities..." },
-  { id: "skills", label: "Discovering verified skills vs unsupported claims..." },
-  { id: "market_trajectory", label: "Researching market requirements & mining trajectory patterns..." },
-  { id: "gaps", label: "Triangulating skill, experience, and evidence gaps..." },
-  { id: "pathway", label: "Architecting LEARN → BUILD → DEMONSTRATE → REASSESS pathway..." },
-];
-
 export default function AnalyzePage() {
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -40,8 +30,7 @@ export default function AnalyzePage() {
   const [isUsingSynthetic, setIsUsingSynthetic] = useState(false);
 
   // Status & Progress state
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStageIndex, setCurrentStageIndex] = useState(0);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +39,7 @@ export default function AnalyzePage() {
       setFile(selected);
       setIsUsingSynthetic(false);
       setErrorMessage(null);
+      setIsSubmitted(false);
     }
   };
 
@@ -60,11 +50,11 @@ export default function AnalyzePage() {
       setFile(dropped);
       setIsUsingSynthetic(false);
       setErrorMessage(null);
+      setIsSubmitted(false);
     }
   };
 
   const handleUseSyntheticData = () => {
-    // Create a mock synthetic file object from our verified fixture
     const blob = new Blob([SYNTHETIC_RESUME_TEXT], { type: "text/plain" });
     const syntheticFile = new File([blob], "Alex_Rivera_Synthetic_Resume.docx", {
       type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -79,9 +69,10 @@ export default function AnalyzePage() {
     );
     setIsUsingSynthetic(true);
     setErrorMessage(null);
+    setIsSubmitted(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -91,57 +82,12 @@ export default function AnalyzePage() {
     }
 
     if (!file) {
-      setErrorMessage("Please upload a resume (.pdf or .docx) or click 'Use Sample Synthetic Profile'.");
+      setErrorMessage("Please upload a resume (.pdf or .docx) or click 'Fill Sample Synthetic Profile'.");
       return;
     }
 
-    setIsSubmitting(true);
-    setCurrentStageIndex(0);
-
-    try {
-      const formData = new FormData();
-      formData.append("resume", file);
-      formData.append("targetRole", targetRole.trim());
-      formData.append("targetIndustry", targetIndustry.trim());
-      formData.append("targetCompany", targetCompany.trim());
-      formData.append("additionalContext", additionalContext.trim());
-
-      // Visual progress progression while server executes orchestrated pipeline
-      const progressInterval = setInterval(() => {
-        setCurrentStageIndex((prev) => {
-          if (prev < ANALYSIS_STAGES.length - 2) {
-            return prev + 1;
-          }
-          return prev;
-        });
-      }, 3500);
-
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData,
-      });
-
-      clearInterval(progressInterval);
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.error || "An error occurred during career orchestration analysis."
-        );
-      }
-
-      setCurrentStageIndex(ANALYSIS_STAGES.length - 1);
-
-      // Navigate to career map results
-      setTimeout(() => {
-        router.push(`/results/${result.analysisId}`);
-      }, 800);
-    } catch (err: unknown) {
-      setIsSubmitting(false);
-      const msg = err instanceof Error ? err.message : "Failed to analyze career profile.";
-      setErrorMessage(msg);
-    }
+    // Explicit development confirmation state without claiming fake analysis
+    setIsSubmitted(true);
   };
 
   return (
@@ -149,15 +95,83 @@ export default function AnalyzePage() {
       <div className="space-y-2 text-center sm:text-left">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
           <Sparkles className="h-3.5 w-3.5" />
-          Step 1 of 2: Candidate & Destination Setup
+          Step 1: Intake & Career Destination
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
           Build Your Career Map
         </h1>
         <p className="text-sm text-muted-foreground">
-          Provide your current resume and target role. M.A.C.O.S. will orchestrate market research, trajectory mining, and gap triangulation.
+          Provide your current resume and target role. The intake form captures your background for subsequent orchestration.
         </p>
       </div>
+
+      {/* Development State Confirmation Banner when submitted */}
+      {isSubmitted && file && (
+        <div className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-6 space-y-4 shadow-sm animate-in fade-in duration-300">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-2 flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h3 className="font-bold text-base text-foreground">
+                  Intake Validated (Development State)
+                </h3>
+                <span className="self-start rounded bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary uppercase">
+                  Foundation Verified
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Your input parameters have been validated. In this stability phase, AI orchestration is paused to ensure solid routing and error-free execution.
+              </p>
+
+              {/* Summary of validated parameters */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
+                <div className="rounded-lg bg-background p-3 border space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                    Document Received
+                  </span>
+                  <p className="font-semibold text-foreground">{file.name}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB • {file.type || "Document"}
+                  </p>
+                </div>
+
+                <div className="rounded-lg bg-background p-3 border space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                    Target Destination
+                  </span>
+                  <p className="font-semibold text-foreground">{targetRole}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {targetIndustry || "General Industry"} {targetCompany ? `• ${targetCompany}` : ""}
+                  </p>
+                </div>
+              </div>
+
+              {/* Navigation CTAs */}
+              <div className="flex flex-wrap items-center gap-3 pt-3">
+                <Link href="/results">
+                  <Button size="sm" className="gap-1.5 text-xs font-semibold">
+                    <Compass className="h-3.5 w-3.5" /> Preview Results Page (/results)
+                  </Button>
+                </Link>
+                <Link href="/debug">
+                  <Button variant="outline" size="sm" className="text-xs">
+                    View System Diagnostics (/debug)
+                  </Button>
+                </Link>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSubmitted(false)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" /> Edit Parameters
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Test Alert Banner */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
@@ -165,10 +179,10 @@ export default function AnalyzePage() {
           <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
           <div className="text-xs">
             <p className="font-semibold text-foreground">
-              Hackathon Fast-Track Evaluation
+              Development Test Helper
             </p>
             <p className="text-muted-foreground mt-0.5">
-              Want to test the full pipeline immediately without uploading your own document?
+              Want to populate test fields immediately without picking a local file?
             </p>
           </div>
         </div>
@@ -222,10 +236,10 @@ export default function AnalyzePage() {
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-foreground">
-                    {file.name} {isUsingSynthetic && "(Synthetic Profile)"}
+                    {file.name} {isUsingSynthetic && "(Synthetic Sample)"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {(file.size / (1024 * 1024)).toFixed(2)} MB • Ready for analysis
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB • Selected
                   </p>
                 </div>
                 <p className="text-[11px] text-primary font-medium hover:underline">
@@ -242,16 +256,12 @@ export default function AnalyzePage() {
                     Drop your resume here or click to browse
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Supports text-based PDF and Microsoft Word DOCX
+                    Supports PDF (.pdf) and Microsoft Word (.docx)
                   </p>
                 </div>
               </div>
             )}
           </div>
-
-          <p className="text-[11px] text-muted-foreground">
-            🔒 <strong>Privacy Note:</strong> Your resume is processed solely for your career analysis and is never shared publicly or used to train public foundation models.
-          </p>
         </div>
 
         {/* Section B: Career Destination */}
@@ -270,7 +280,10 @@ export default function AnalyzePage() {
                 type="text"
                 required
                 value={targetRole}
-                onChange={(e) => setTargetRole(e.target.value)}
+                onChange={(e) => {
+                  setTargetRole(e.target.value);
+                  setIsSubmitted(false);
+                }}
                 placeholder="e.g. Technical Product Manager, AI Engineer"
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
@@ -283,7 +296,10 @@ export default function AnalyzePage() {
               <input
                 type="text"
                 value={targetIndustry}
-                onChange={(e) => setTargetIndustry(e.target.value)}
+                onChange={(e) => {
+                  setTargetIndustry(e.target.value);
+                  setIsSubmitted(false);
+                }}
                 placeholder="e.g. B2B SaaS, FinTech, HealthTech"
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
@@ -298,7 +314,10 @@ export default function AnalyzePage() {
             <input
               type="text"
               value={targetCompany}
-              onChange={(e) => setTargetCompany(e.target.value)}
+              onChange={(e) => {
+                setTargetCompany(e.target.value);
+                setIsSubmitted(false);
+              }}
               placeholder="e.g. Stripe, Google, or leave empty for general market"
               className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
@@ -312,8 +331,11 @@ export default function AnalyzePage() {
             <textarea
               rows={3}
               value={additionalContext}
-              onChange={(e) => setAdditionalContext(e.target.value)}
-              placeholder="Mention specific areas you wish to focus on (e.g., 'transitioning from frontend to product', 'seeking roles with heavy ML exposure', 'portfolio link: github.com/...')"
+              onChange={(e) => {
+                setAdditionalContext(e.target.value);
+                setIsSubmitted(false);
+              }}
+              placeholder="Mention specific areas you wish to focus on (e.g., 'transitioning from frontend to product', 'seeking roles with heavy ML exposure')"
               className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
@@ -324,7 +346,7 @@ export default function AnalyzePage() {
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive flex items-start gap-3">
             <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="font-bold">Analysis Failed to Start</p>
+              <p className="font-bold">Validation Issue</p>
               <p>{errorMessage}</p>
             </div>
           </div>
@@ -335,76 +357,13 @@ export default function AnalyzePage() {
           <Button
             type="submit"
             size="lg"
-            disabled={isSubmitting}
             className="w-full sm:w-auto h-12 px-8 text-sm font-semibold gap-2 shadow-md"
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Orchestrating Analysis...
-              </>
-            ) : (
-              <>
-                Analyze My Career
-                <ArrowRight className="h-4 w-4" />
-              </>
-            )}
+            Analyze My Career
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </form>
-
-      {/* Real-time Progress Modal Overlay during Analysis */}
-      {isSubmitting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-lg rounded-2xl border bg-card p-6 sm:p-8 shadow-2xl space-y-6">
-            <div className="space-y-2 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground">
-                Orchestrating Career Intelligence
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                M.A.C.O.S. is executing multi-agent analysis for <strong>{targetRole}</strong>.
-              </p>
-            </div>
-
-            {/* Stages List */}
-            <div className="space-y-3">
-              {ANALYSIS_STAGES.map((st, idx) => {
-                const isCompleted = idx < currentStageIndex;
-                const isCurrent = idx === currentStageIndex;
-
-                return (
-                  <div
-                    key={st.id}
-                    className={`flex items-center gap-3 rounded-lg p-2.5 text-xs transition-colors ${
-                      isCurrent
-                        ? "bg-primary/10 font-semibold text-primary border border-primary/20"
-                        : isCompleted
-                        ? "text-foreground"
-                        : "text-muted-foreground/60"
-                    }`}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                    ) : isCurrent ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
-                    ) : (
-                      <div className="h-4 w-4 rounded-full border border-muted-foreground/30 shrink-0" />
-                    )}
-                    <span>{st.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <p className="text-center text-[11px] text-muted-foreground">
-              Please wait a few seconds while Gemini and the research engine complete the orchestration.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

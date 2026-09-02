@@ -5,7 +5,7 @@ import { generateChatResponse } from "@/lib/ai/geminiClient";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { analysisId, messages } = body;
+    const { analysisId, messages, section, focusedItem } = body;
 
     if (!analysisId || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -28,8 +28,8 @@ CONTEXT FOR CANDIDATE:
 - Target Industry: ${analysis.target_industry || "Technology"}
 - Target Company: ${analysis.target_company || "None specified"}
 - Candidate: ${analysis.candidate_profile?.fullName || "Candidate"} (${analysis.candidate_profile?.headline || "Practitioner"})
-- Overall Readiness Score: ${analysis.gap_analysis?.readinessScore ?? "N/A"}/100
-- Competitive Advantage: ${analysis.gap_analysis?.keyCompetitiveAdvantage || "Demonstrated foundational skills"}
+- Overall Readiness Score: ${analysis.gap_analysis?.readinessScore ?? "N/A"}/100 (Evidence-matching benchmark, not a hiring probability)
+- Competitive Advantage: ${analysis.gap_analysis?.keyCompetitiveAdvantage || "Demonstrated foundational technical execution"}
 
 DEMONSTRATED SKILLS:
 ${analysis.skills_analysis?.demonstratedSkills?.map((s) => `- ${s.skill} (Evidence: ${s.evidence}, Confidence: ${s.confidence})`).join("\n") || "None"}
@@ -38,30 +38,40 @@ UNCERTAIN SKILLS / MISSING INFO:
 ${analysis.skills_analysis?.uncertainSkills?.map((u) => `- ${u.skill} (${u.reason})`).join("\n") || "None"}
 
 CRITICAL GAPS:
-Skill Gaps: ${analysis.gap_analysis?.skillGaps?.map((g) => `${g.gap} [${g.priority}]`).join("; ") || "None"}
-Experience Gaps: ${analysis.gap_analysis?.experienceGaps?.map((g) => `${g.gap} [${g.priority}]`).join("; ") || "None"}
-Evidence Gaps: ${analysis.gap_analysis?.evidenceGaps?.map((g) => `${g.gap} [${g.priority}]`).join("; ") || "None"}
+Skill Gaps: ${analysis.gap_analysis?.skillGaps?.map((g) => `${g.gap} [${g.priority}]: ${g.candidateEvidence} vs ${g.marketRequirement}`).join("; ") || "None"}
+Experience Gaps: ${analysis.gap_analysis?.experienceGaps?.map((g) => `${g.gap} [${g.priority}]: ${g.candidateEvidence} vs ${g.marketRequirement}`).join("; ") || "None"}
+Evidence Gaps: ${analysis.gap_analysis?.evidenceGaps?.map((g) => `${g.gap} [${g.priority}]: ${g.candidateEvidence} vs ${g.marketRequirement}`).join("; ") || "None"}
 
-RECOMMENDED PATHWAY:
+RECOMMENDED 4-STAGE PATHWAY:
 LEARN: ${analysis.pathway?.stages?.LEARN?.map((a) => a.title).join("; ") || "None"}
 BUILD: ${analysis.pathway?.stages?.BUILD?.map((a) => a.title).join("; ") || "None"}
 DEMONSTRATE: ${analysis.pathway?.stages?.DEMONSTRATE?.map((a) => a.title).join("; ") || "None"}
 REASSESS: ${analysis.pathway?.stages?.REASSESS?.map((a) => a.title).join("; ") || "None"}
 
-TRAJECTORY PATTERNS OBSERVED:
+TRAJECTORY PATTERNS:
 ${analysis.trajectory_analysis?.recurringTrajectoryStages?.map((s) => `Stage ${s.stageNumber}: ${s.stageName}`).join(" -> ") || "None"}
+${section ? `\nUSER IS CURRENTLY VIEWING: ${section}` : ""}
+${focusedItem ? `FOCUSED ITEM / CONTEXT: ${focusedItem}` : ""}
 `.trim();
 
     const systemInstruction = `
-You are "Ask M.A.C.O.S.", the context-aware career navigation mentor for this user.
-You have access to the user's complete validated Career Orchestration analysis.
+You are "Ask M.A.C.O.S.", a clear, human, and empathetic career navigation mentor.
+You have access to the user's complete verified Career Orchestration analysis.
 
-STRICT BEHAVIOR RULES:
-1. Ground all answers in the stored analysis above.
-2. If asked "Why is this my biggest gap?" or "Why did you recommend this project?", explain using the specific candidate evidence, market requirements, and trajectory signals captured in the analysis.
-3. Be candid, encouraging, tactical, and evidence-first. Do not give vague platitudes like "network more" without actionable steps.
-4. If asked about topics outside this specific analysis, explicitly state: "[General Career Guidance]" before answering.
-5. Keep answers concise, articulate, and formatted with clean markdown bullet points.
+COMMUNICATION STYLE (STRICT RULES):
+1. USE PLAIN ENGLISH: Speak like an experienced, thoughtful senior mentor advising a student or career switcher.
+2. PREFER SHORT SENTENCES & CLEAR VERBS: Avoid dense academic AI jargon (e.g. avoid "competency deficit", "multidimensional quantitative evaluation", "trajectory-derived telemetry").
+3. PUT THE MAIN CONCLUSION FIRST:
+   - "Here's what this means for you:"
+   - "Your biggest gap is..."
+   - "You already have..."
+   - "The reason this matters is..."
+   - "Your next best step is..."
+4. PERSONALIZED REASONING OVER GENERIC ADVICE:
+   - When asked "Why is this my biggest gap?" or "Why did you recommend this project?", contrast what the candidate ALREADY has with what is missing.
+   - Example: "Your profile already shows strong software engineering skills, so M.A.C.O.S. isn't recommending another coding tutorial. The missing piece is product-level evidence like user specs or metrics instrumentation. That's why this is your top priority."
+5. AVOID EXAGGERATED CERTAINTY: Never guarantee hiring outcomes. State clearly what is fact from the resume vs. what is inferred from market patterns.
+6. CONCISE BULLET POINTS: Keep answers direct, friendly, and structured.
 `.trim();
 
     const formattedMessages = messages.map((m: { role: string; content: string }) => ({
@@ -69,7 +79,6 @@ STRICT BEHAVIOR RULES:
       content: m.content,
     }));
 
-    // Inject context into the prompt
     const enhancedMessages = [
       {
         role: "user" as const,
@@ -77,7 +86,7 @@ STRICT BEHAVIOR RULES:
       },
       {
         role: "model" as const,
-        content: `I have thoroughly ingested your career analysis for ${analysis.target_role}. I am ready to answer any questions about your gaps, milestones, market requirements, or trajectory patterns.`,
+        content: `I have thoroughly reviewed your career analysis for ${analysis.target_role}. I'm here to explain what your gaps mean, why specific steps are recommended, and what you should tackle first.`,
       },
       ...formattedMessages,
     ];

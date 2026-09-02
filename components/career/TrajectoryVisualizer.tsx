@@ -1,33 +1,56 @@
+"use client";
+
 import React from "react";
 import { CareerTrajectoryOutput } from "@/types";
-import { ArrowRight, CheckCircle2, GitFork, ShieldCheck, Sparkles, TrendingUp, Compass } from "lucide-react";
+import {
+  ArrowRight,
+  GitFork,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  HelpCircle,
+} from "lucide-react";
 
 interface TrajectoryVisualizerProps {
   trajectory: CareerTrajectoryOutput;
+  onAskWhy?: (question: string, contextItem: string) => void;
 }
 
-export function TrajectoryVisualizer({ trajectory }: TrajectoryVisualizerProps) {
+export function TrajectoryVisualizer({ trajectory, onAskWhy }: TrajectoryVisualizerProps) {
   return (
     <div className="space-y-8">
-      {/* Narrative Banner */}
-      <div className="rounded-3xl border border-white/[0.08] bg-gradient-to-r from-[#ac1ed6]/15 via-[#121016] to-[#c26e73]/10 p-6 sm:p-7 shadow-lg">
-        <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/20 shrink-0 mt-0.5">
-            <Compass className="h-6 w-6 stroke-[2.2]" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white uppercase tracking-wider">
-                Career Trajectory Intelligence
-              </span>
-              <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[10px] font-mono text-[#d5d0dd]">
-                Macro Signals
-              </span>
+      {/* WHAT THIS MEANS FOR YOU - Takeaway Callout */}
+      <div className="rounded-3xl border border-[#ac1ed6]/30 bg-[#ac1ed6]/5 p-5 sm:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#ac1ed6]/20 text-[#ac1ed6] shrink-0 mt-0.5">
+              <Sparkles className="h-4 w-4" />
             </div>
-            <p className="text-xs sm:text-sm text-[#9a93a5] leading-relaxed">
-              Across verified public professional trajectories, these recurring transition milestones repeatedly unlock hiring confidence. We focus on structural patterns and proof-of-work rather than asking you to copy individual celebrities.
-            </p>
+            <div className="space-y-1">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#ac1ed6]">
+                What This Means For You
+              </h4>
+              <p className="text-xs sm:text-sm text-white font-medium leading-relaxed">
+                People reach this role through several routes, but strong foundational execution + practical domain exposure + increasing ownership appear repeatedly. You do not need to copy one person&apos;s exact career.
+              </p>
+            </div>
           </div>
+
+          {onAskWhy && (
+            <button
+              type="button"
+              onClick={() =>
+                onAskWhy(
+                  "Why is this trajectory considered a realistic route for someone with my background?",
+                  "Career Trajectory"
+                )
+              }
+              className="rounded-full bg-white/[0.04] border border-white/[0.08] hover:border-[#ac1ed6]/50 hover:bg-white/[0.08] text-[#d5d0dd] hover:text-white px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-all self-start sm:self-center shrink-0"
+            >
+              <HelpCircle className="h-3.5 w-3.5 text-[#ac1ed6]" />
+              <span>Why this route?</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -36,7 +59,7 @@ export function TrajectoryVisualizer({ trajectory }: TrajectoryVisualizerProps) 
         <div className="flex items-center justify-between">
           <h4 className="text-xs font-bold uppercase tracking-widest text-[#d5d0dd] flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-[#ac1ed6]" />
-            Recurring Macro Progression Stages
+            Recurring Progression Stages
           </h4>
           <span className="text-[11px] font-mono text-[#757080]">
             {trajectory.recurringTrajectoryStages.length} Milestones Identified
@@ -58,90 +81,73 @@ export function TrajectoryVisualizer({ trajectory }: TrajectoryVisualizerProps) 
                     Stage {stage.stageNumber} of {trajectory.recurringTrajectoryStages.length}
                   </span>
                 </div>
-
                 <div>
-                  <h5 className="font-bold text-sm text-white group-hover:text-[#f4f2f5] transition-colors">
+                  <h5 className="font-bold text-sm text-white group-hover:text-[#c26e73] transition-colors">
                     {stage.stageName}
                   </h5>
-                  <div className="mt-1.5 inline-block rounded-full bg-white/[0.05] border border-white/[0.06] px-2.5 py-0.5 text-[10px] text-[#c26e73] font-mono font-medium">
+                  <p className="text-[11px] font-mono text-[#9a93a5] mt-0.5">
                     {stage.typicalRole}
-                  </div>
+                  </p>
                 </div>
-
-                <p className="text-xs text-[#9a93a5] leading-relaxed line-clamp-3">
+                <p className="text-xs text-[#9a93a5] leading-relaxed">
                   {stage.description}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-white/[0.06] text-[11px] text-[#9a93a5]">
-                <span className="font-bold text-white">Focus:</span> {stage.keyFocus}
+              <div className="pt-2 border-t border-white/[0.06] text-[11px] text-[#757080]">
+                <strong className="text-white">Core Focus:</strong> {stage.keyFocus}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Common Transitions & Catalysts */}
-      {trajectory.commonTransitions.length > 0 && (
+      {/* Common Career Transitions / Catalysts */}
+      {trajectory.commonTransitions && trajectory.commonTransitions.length > 0 && (
         <div className="space-y-4">
           <h4 className="text-xs font-bold uppercase tracking-widest text-[#d5d0dd] flex items-center gap-2">
             <GitFork className="h-4 w-4 text-[#c26e73]" />
-            Decisive Transition Catalysts
+            Transition Catalysts & Break-In Precedents
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {trajectory.commonTransitions.map((trans, idx) => (
+            {trajectory.commonTransitions.map((t, idx) => (
               <div
                 key={idx}
-                className="rounded-3xl border border-white/[0.08] bg-[#121016] p-5 sm:p-6 space-y-4 shadow-md hover:border-white/15 transition-all"
+                className="rounded-3xl border border-white/[0.08] bg-[#121016] p-5 space-y-3 hover:border-white/20 transition-all shadow-md"
               >
-                <div className="flex items-center gap-2 text-xs font-bold text-white flex-wrap">
-                  <span className="rounded-full bg-white/[0.05] border border-white/[0.08] px-3 py-1">
-                    {trans.from}
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="rounded-full bg-white/[0.05] px-3 py-1 text-[#d5d0dd] border border-white/[0.06]">
+                    {t.from}
                   </span>
-                  <ArrowRight className="h-3.5 w-3.5 text-[#ac1ed6] shrink-0" />
-                  <span className="rounded-full bg-[#ac1ed6]/20 border border-[#ac1ed6]/40 px-3 py-1 text-[#d5d0dd]">
-                    {trans.to}
+                  <ArrowRight className="h-4 w-4 text-[#ac1ed6] shrink-0" />
+                  <span className="rounded-full bg-gradient-to-r from-[#ac1ed6]/20 to-[#c26e73]/20 px-3 py-1 text-white border border-[#ac1ed6]/30">
+                    {t.to}
                   </span>
                 </div>
 
-                <div className="space-y-1 text-xs">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#c26e73]">
-                    The Transition Catalyst
-                  </p>
-                  <p className="text-[#9a93a5] leading-relaxed">
-                    {trans.transitionCatalyst}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3 text-[11px] text-[#9a93a5] flex items-start gap-2.5">
-                  <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3.5 space-y-2 text-xs">
                   <div>
-                    <span className="font-bold text-white">Required Proof-of-Work: </span>
-                    {trans.keyEvidenceRequired}
+                    <span className="text-[10px] font-mono uppercase text-[#ac1ed6] font-bold">
+                      Transition Catalyst:
+                    </span>
+                    <p className="text-white font-medium text-xs mt-0.5">
+                      {t.transitionCatalyst}
+                    </p>
+                  </div>
+                  <div className="border-t border-white/[0.04] pt-2">
+                    <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold flex items-center gap-1">
+                      <ShieldCheck className="h-3 w-3" />
+                      Key Evidence Required:
+                    </span>
+                    <p className="text-[#9a93a5] text-[11px] mt-0.5">
+                      {t.keyEvidenceRequired}
+                    </p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Evidence Patterns */}
-      {trajectory.evidencePatterns.length > 0 && (
-        <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-md">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#d5d0dd]">
-            <Sparkles className="h-4 w-4 text-[#ac1ed6]" />
-            Recurring Proof-of-Work Patterns Across Transitions
-          </div>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-[#9a93a5]">
-            {trajectory.evidencePatterns.map((pat, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 rounded-2xl bg-white/[0.02] border border-white/[0.04] p-3">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{pat}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       )}
     </div>

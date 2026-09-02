@@ -10,7 +10,6 @@ import {
   Building,
   CheckCircle2,
   FileText,
-  ShieldCheck,
   ExternalLink,
   Sparkles,
   Award,
@@ -18,15 +17,25 @@ import {
   BookOpen,
   ArrowUpRight,
   Target,
+  Send,
+  HelpCircle,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AnalysisRecord } from "@/types";
+import { AnalysisRecord, GapItem } from "@/types";
 import { TrajectoryVisualizer } from "@/components/career/TrajectoryVisualizer";
 import { GapCard } from "@/components/career/GapCard";
 import { PathwayTimeline } from "@/components/career/PathwayTimeline";
 import { AskMacOsDrawer } from "@/components/chat/AskMacOsDrawer";
 
-type TabKey = "overview" | "trajectories" | "gaps" | "pathway" | "market" | "profile" | "sources";
+type TabKey =
+  | "snapshot"
+  | "trajectories"
+  | "gaps"
+  | "pathway"
+  | "market"
+  | "profile"
+  | "sources";
 
 export default function ResultsPage({
   params,
@@ -40,7 +49,27 @@ export default function ResultsPage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [activeTab, setActiveTab] = useState<TabKey>("snapshot");
+
+  // Contextual Chat states
+  const [selectedFocusItem, setSelectedFocusItem] = useState<string | undefined>(undefined);
+  const [chatInitialQuestion, setChatInitialQuestion] = useState<string | undefined>(undefined);
+  const [inlineQuestion, setInlineQuestion] = useState("");
+
+  const handleAskWhy = (question: string, contextItem: string) => {
+    setSelectedFocusItem(contextItem);
+    setChatInitialQuestion(question);
+    setIsChatOpen(true);
+  };
+
+  const handleInlineAsk = (query?: string) => {
+    const q = query || inlineQuestion;
+    if (!q.trim()) return;
+    setChatInitialQuestion(q.trim());
+    setSelectedFocusItem(undefined);
+    setInlineQuestion("");
+    setIsChatOpen(true);
+  };
 
   useEffect(() => {
     async function loadAnalysis() {
@@ -66,7 +95,7 @@ export default function ResultsPage({
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center p-16 space-y-4">
+      <div className="flex min-h-[70vh] flex-col items-center justify-center p-16 space-y-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-xl shadow-[#ac1ed6]/30 animate-pulse">
           <Compass className="h-7 w-7 animate-spin" />
         </div>
@@ -119,10 +148,42 @@ export default function ResultsPage({
     ...(trajectory_analysis?.sources || []),
   ];
 
-  const readinessScore = gap_analysis?.readinessScore ?? 68;
+  const readinessScore = gap_analysis?.readinessScore ?? 65;
+
+  // Extract Top 3 Strengths
+  const topStrengths = (skills_analysis?.demonstratedSkills?.slice(0, 3) || []).map((s, i) => ({
+    num: `0${i + 1}`,
+    name: s.skill,
+    explanation: s.evidence || "Demonstrated repeatedly across your past projects.",
+  }));
+
+  // Extract Top 3 Gaps (Skill, Experience, or Evidence)
+  const allGaps: GapItem[] = [
+    ...(gap_analysis?.skillGaps || []),
+    ...(gap_analysis?.experienceGaps || []),
+    ...(gap_analysis?.evidenceGaps || []),
+  ];
+  const topGaps = allGaps.slice(0, 3).map((g, i) => ({
+    num: `0${i + 1}`,
+    name: g.gap,
+    category: g.category,
+    explanation:
+      g.category === "evidence"
+        ? "You may have the ability, but your profile doesn't yet show proof of it."
+        : g.impactOnReadiness,
+  }));
+
+  // Extract Next Best Moves (3-4 milestones)
+  const nextBestMoves = (pathway?.milestones?.slice(0, 4) || []).map((m, i) => ({
+    num: `${i + 1}`,
+    title: m.title,
+    action: m.action,
+    duration: m.estimatedDuration || "2-3 weeks",
+    priority: m.priority,
+  }));
 
   const tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { key: "overview", label: "Overview", icon: Compass },
+    { key: "snapshot", label: "Career Snapshot", icon: Sparkles },
     { key: "trajectories", label: "Trajectory Intelligence", icon: TrendingUp },
     { key: "gaps", label: "Gap Map", icon: Target },
     { key: "pathway", label: "Action Pathway", icon: BookOpen },
@@ -134,7 +195,7 @@ export default function ResultsPage({
   return (
     <div className="min-h-screen bg-[#090607] pb-24 text-white">
       {/* TOP STICKY BAR: DESTINATION HERO & READINESS INDICATOR */}
-      <div className="border-b border-white/[0.08] bg-[#090607]/80 sticky top-16 z-30 backdrop-blur-xl">
+      <div className="border-b border-white/[0.08] bg-[#090607]/85 sticky top-16 z-30 backdrop-blur-xl">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
@@ -146,7 +207,7 @@ export default function ResultsPage({
                   <ArrowLeft className="h-3 w-3" /> New Intake
                 </Link>
                 <span className="text-white/20">•</span>
-                <span className="text-xs font-mono text-[#ac1ed6]">CAREER MAP</span>
+                <span className="text-xs font-mono text-[#ac1ed6] font-bold">CAREER MAP</span>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
@@ -194,16 +255,20 @@ export default function ResultsPage({
                 </div>
                 <div className="text-left">
                   <p className="text-[10px] uppercase font-bold text-[#757080] tracking-wider">
-                    Role Readiness
+                    Evidence Match
                   </p>
                   <p className="text-xs font-bold text-emerald-400">
-                    {readinessScore >= 70 ? "Competitive" : "Progression Needed"}
+                    {readinessScore >= 70 ? "Strong Base" : "Progression Needed"}
                   </p>
                 </div>
               </div>
 
               <Button
-                onClick={() => setIsChatOpen(true)}
+                onClick={() => {
+                  setSelectedFocusItem(undefined);
+                  setChatInitialQuestion(undefined);
+                  setIsChatOpen(true);
+                }}
                 size="sm"
                 className="gap-2 rounded-full bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] hover:opacity-95 text-white border-0 font-bold text-xs h-10 px-4 shadow-md shadow-[#ac1ed6]/20 transition-all hover:scale-105 active:scale-95"
               >
@@ -222,14 +287,14 @@ export default function ResultsPage({
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold transition-all ${
+                  className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all shrink-0 ${
                     isActive
-                      ? "bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/20"
-                      : "bg-white/[0.04] text-[#9a93a5] hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
+                      ? "bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/25"
+                      : "bg-white/[0.04] text-[#9a93a5] hover:bg-white/[0.08] hover:text-white border border-white/[0.06]"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
-                  {tab.label}
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
@@ -240,261 +305,437 @@ export default function ResultsPage({
       {/* MAIN CONTENT PANELS */}
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
         {/* ========================================================================= */}
-        {/* TAB 1: OVERVIEW / COMPLETE CAREER MAP */}
+        {/* TAB 1: YOUR CAREER SNAPSHOT (10-SECOND EXECUTIVE SUMMARY) */}
         {/* ========================================================================= */}
-        {activeTab === "overview" && (
+        {activeTab === "snapshot" && (
           <div className="space-y-8">
-            {/* Top Insight Card: Competitive Advantage */}
-            <div className="rounded-3xl border border-white/[0.08] bg-gradient-to-r from-[#ac1ed6]/15 via-[#121016] to-[#c26e73]/10 p-6 sm:p-8 shadow-xl">
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md shrink-0">
-                  <Award className="h-6 w-6 stroke-[2.2]" />
-                </div>
-                <div className="space-y-1 flex-1">
+            {/* 1. TOP CARDS: DESTINATION & CURRENT POSITION */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Destination Card */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 sm:p-7 space-y-4 shadow-lg">
+                <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#ac1ed6]">
-                    Competitive Advantage Synthesis
+                    Your Destination
                   </span>
-                  <h3 className="text-lg sm:text-xl font-bold text-white">
-                    {candidate_profile?.fullName || "Candidate"} &apos;s Unique Strategic Edge
+                  <Target className="h-4 w-4 text-[#ac1ed6]" />
+                </div>
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white">
+                    {target_role}
                   </h3>
-                  <p className="text-xs sm:text-sm text-[#9a93a5] leading-relaxed pt-1">
-                    {gap_analysis?.keyCompetitiveAdvantage ||
-                      "Strong foundational software engineering execution with demonstrated project delivery. High leverage potential for technical product scope."}
+                  <p className="text-xs text-[#9a93a5] mt-1">
+                    {target_industry || "Technology"} • {target_company || "General Industry Target"}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-[#090607]/80 p-3.5 border border-white/[0.06] text-xs text-[#d5d0dd] space-y-1">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#757080]">
+                    What Companies Look For
+                  </div>
+                  <p className="text-[11px] text-[#9a93a5] leading-relaxed">
+                    {market_analysis?.marketOverview
+                      ? market_analysis.marketOverview.slice(0, 140) + "..."
+                      : "Verified hands-on execution and demonstrable domain projects."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Current Position Card */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 sm:p-7 space-y-4 shadow-lg lg:col-span-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#c26e73]">
+                    Your Current Position
+                  </span>
+                  <Compass className="h-4 w-4 text-[#c26e73]" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white">
+                    {candidate_profile?.fullName || "Candidate"}
+                    {candidate_profile?.headline ? ` — ${candidate_profile.headline}` : ""}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#d5d0dd] mt-2 leading-relaxed">
+                    You already have a strong foundation in{" "}
+                    <strong className="text-white">
+                      {candidate_profile?.skills?.slice(0, 3).join(", ") || "core technical execution"}
+                    </strong>
+                    . Your primary challenge is converting that ability into visible evidence and domain-specific track record for{" "}
+                    <strong className="text-[#c26e73]">{target_role}</strong>.
+                  </p>
+                </div>
+
+                {/* Readiness Explained honestly */}
+                <div className="rounded-2xl bg-emerald-500/5 border border-emerald-500/20 p-4 text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-emerald-400">
+                      Career Readiness: {readinessScore}/100
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-400/80">
+                      Evidence Match Benchmark
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#9a93a5] leading-relaxed">
+                    Based on the requirements and evidence available in your profile. This score indicates how much of the required proof is currently documented in your profile. It is an evidence benchmark, not an absolute hiring guarantee.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Quick 3-Pillar Summary Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Pillar A: Trajectory Signal */}
-              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-white">
-                    <TrendingUp className="h-4 w-4 text-[#ac1ed6]" />
-                    Trajectory Precedent
+            {/* 2. THE BIGGEST CAREER INSIGHT (Visually Prominent Card) */}
+            <div className="rounded-3xl border border-white/[0.12] bg-gradient-to-r from-[#ac1ed6]/20 via-[#121016] to-[#c26e73]/20 p-6 sm:p-8 shadow-xl">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md shrink-0 mt-0.5">
+                  <Award className="h-6 w-6 stroke-[2.2]" />
+                </div>
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#ac1ed6]">
+                      The Biggest Career Insight
+                    </span>
+                    <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[9px] font-mono text-[#d5d0dd]">
+                      Personalized Edge
+                    </span>
                   </div>
-                  <button
-                    onClick={() => setActiveTab("trajectories")}
-                    className="text-[11px] font-bold text-[#ac1ed6] hover:underline flex items-center gap-0.5"
-                  >
-                    Details <ArrowUpRight className="h-3 w-3" />
-                  </button>
-                </div>
-                <p className="text-xs text-[#9a93a5] leading-relaxed">
-                  {trajectory_analysis?.evidencePatterns?.[0] ||
-                    "Transitioning candidates succeed by delivering verifiable proof-of-work rather than relying on pedigree."}
-                </p>
-                <div className="rounded-2xl bg-[#090607]/80 p-3 border border-white/[0.06] text-[11px] text-[#d5d0dd]">
-                  <span className="font-bold text-[#c26e73]">Key Catalyst: </span>
-                  {trajectory_analysis?.commonTransitions?.[0]?.transitionCatalyst ||
-                    "Demonstrated ownership of product telemetry and technical specifications."}
-                </div>
-              </div>
-
-              {/* Pillar B: Primary Critical Gap */}
-              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-white">
-                    <Target className="h-4 w-4 text-[#c26e73]" />
-                    Top Critical Gap
-                  </div>
-                  <button
-                    onClick={() => setActiveTab("gaps")}
-                    className="text-[11px] font-bold text-[#c26e73] hover:underline flex items-center gap-0.5"
-                  >
-                    View All <ArrowUpRight className="h-3 w-3" />
-                  </button>
-                </div>
-                <p className="text-xs font-bold text-white">
-                  {gap_analysis?.skillGaps?.[0]?.gap || "Product Strategy & Metric Instrumentation"}
-                </p>
-                <p className="text-xs text-[#9a93a5] leading-relaxed">
-                  {gap_analysis?.skillGaps?.[0]?.impactOnReadiness ||
-                    "Required for hiring managers to evaluate cross-functional ownership."}
-                </p>
-                <div className="rounded-2xl bg-[#090607]/80 p-3 border border-white/[0.06] text-[11px] text-[#d5d0dd]">
-                  <span className="font-bold text-[#ac1ed6]">Market Expectation: </span>
-                  {gap_analysis?.skillGaps?.[0]?.marketRequirement || "Proven product discovery telemetry."}
-                </div>
-              </div>
-
-              {/* Pillar C: Immediate Action */}
-              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-white">
-                    <BookOpen className="h-4 w-4 text-emerald-400" />
-                    Immediate Next Action
-                  </div>
-                  <button
-                    onClick={() => setActiveTab("pathway")}
-                    className="text-[11px] font-bold text-emerald-400 hover:underline flex items-center gap-0.5"
-                  >
-                    Pathway <ArrowUpRight className="h-3 w-3" />
-                  </button>
-                </div>
-                <p className="text-xs font-bold text-white">
-                  {pathway?.milestones?.[0]?.title || "Stage 1: Core Competency Sprint"}
-                </p>
-                <p className="text-xs text-[#9a93a5] leading-relaxed">
-                  {pathway?.milestones?.[0]?.action ||
-                    "Review product metrics and build proof-of-work case studies."}
-                </p>
-                <div className="rounded-2xl bg-[#090607]/80 p-3 border border-white/[0.06] text-[11px] text-emerald-400">
-                  <span className="font-bold text-white">Proof-of-Work: </span>
-                  {pathway?.milestones?.[0]?.expectedEvidence || "Deployable technical demo."}
+                  <h3 className="text-base sm:text-xl font-extrabold text-white leading-snug">
+                    {gap_analysis?.keyCompetitiveAdvantage
+                      ? `Your unique advantage: ${gap_analysis.keyCompetitiveAdvantage}`
+                      : "You don't need to learn more coding languages. Your next advantage comes from converting your existing technical ability into visible domain proof."}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#9a93a5] leading-relaxed">
+                    Transitioning candidates often waste months collecting more general certifications. For {target_role}, the hiring market rewards concrete case studies and demonstrable project ownership over academic credentials.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Visual Trajectory Preview Section */}
-            {trajectory_analysis && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-[#ac1ed6]" />
-                    Macro Trajectory Stepping Stones
-                  </h3>
-                  <button
-                    onClick={() => setActiveTab("trajectories")}
-                    className="text-xs font-bold text-[#ac1ed6] hover:underline"
-                  >
-                    Expand Trajectory View →
-                  </button>
+            {/* 3. TOP 3 STRENGTHS & TOP 3 GAPS (Side by side comparison) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* TOP 3 STRENGTHS */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 sm:p-7 space-y-5 shadow-lg">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider">
+                      Your Top 3 Strengths
+                    </h3>
+                  </div>
+                  <span className="text-[11px] text-[#757080]">What you already have</span>
                 </div>
-                <TrajectoryVisualizer trajectory={trajectory_analysis} />
+
+                <div className="space-y-3.5">
+                  {topStrengths.length > 0 ? (
+                    topStrengths.map((str, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-4 flex items-start gap-3.5"
+                      >
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-xs shrink-0">
+                          {str.num}
+                        </span>
+                        <div className="space-y-0.5">
+                          <h4 className="font-bold text-sm text-white">{str.name}</h4>
+                          <p className="text-xs text-[#9a93a5] leading-relaxed">
+                            {str.explanation}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-[#9a93a5]">
+                      Foundational technical background demonstrated from your resume.
+                    </p>
+                  )}
+                </div>
               </div>
-            )}
+
+              {/* TOP 3 GAPS */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 sm:p-7 space-y-5 shadow-lg">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-[#c26e73]" />
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider">
+                      Your Top 3 Gaps
+                    </h3>
+                  </div>
+                  <span className="text-[11px] text-[#757080]">What is missing</span>
+                </div>
+
+                <div className="space-y-3.5">
+                  {topGaps.length > 0 ? (
+                    topGaps.map((gap, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-4 flex items-start justify-between gap-3"
+                      >
+                        <div className="flex items-start gap-3.5">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#c26e73]/15 border border-[#c26e73]/30 text-[#c26e73] font-mono font-bold text-xs shrink-0">
+                            {gap.num}
+                          </span>
+                          <div className="space-y-0.5">
+                            <h4 className="font-bold text-sm text-white">{gap.name}</h4>
+                            <p className="text-xs text-[#9a93a5] leading-relaxed">
+                              {gap.explanation}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleAskWhy(
+                              `Why is "${gap.name}" considered one of my top gaps, and what is the best way to close it?`,
+                              gap.name
+                            )
+                          }
+                          className="text-[11px] font-semibold text-[#ac1ed6] hover:text-[#c26e73] flex items-center gap-1 shrink-0 transition-colors"
+                        >
+                          <HelpCircle className="h-3 w-3" />
+                          <span>Why?</span>
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-[#9a93a5]">
+                      No critical gaps identified.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 4. YOUR NEXT BEST MOVES (3-4 Concrete Actions) */}
+            <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 sm:p-8 space-y-5 shadow-lg">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+                <div>
+                  <h3 className="font-bold text-base text-white flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-[#ac1ed6]" />
+                    Your Next Best Moves
+                  </h3>
+                  <p className="text-xs text-[#9a93a5] mt-0.5">
+                    Concrete, high-leverage steps to take right now before applying.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab("pathway")}
+                  className="text-xs font-bold text-[#ac1ed6] hover:underline flex items-center gap-1"
+                >
+                  View Full Pathway <ArrowUpRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {nextBestMoves.map((move, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-5 space-y-3 hover:border-white/20 transition-all flex flex-col justify-between"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/[0.06] text-white font-mono font-bold text-xs">
+                          {move.num}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.04] px-2.5 py-0.5 text-[10px] font-mono text-[#9a93a5]">
+                          <Clock className="h-3 w-3 text-[#ac1ed6]" />
+                          {move.duration}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-sm text-white">{move.title}</h4>
+                      <p className="text-xs text-[#9a93a5] leading-relaxed">{move.action}</p>
+                    </div>
+
+                    <div className="pt-2 border-t border-white/[0.04] flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase text-[#c26e73] font-bold">
+                        {move.priority} Priority
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleAskWhy(
+                            `Why is "${move.title}" recommended as one of my first moves?`,
+                            move.title
+                          )
+                        }
+                        className="text-[11px] font-semibold text-[#ac1ed6] hover:text-[#c26e73] flex items-center gap-1 transition-colors"
+                      >
+                        <HelpCircle className="h-3 w-3" />
+                        <span>Why this move?</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 5. EMBEDDED ASK M.A.C.O.S. QUICK COPILOT WIDGET */}
+            <div className="rounded-3xl border border-[#ac1ed6]/30 bg-gradient-to-r from-[#ac1ed6]/10 via-[#121016] to-[#c26e73]/10 p-6 sm:p-8 space-y-4 shadow-xl">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-white">Ask M.A.C.O.S.</h3>
+                  <p className="text-xs text-[#9a93a5]">
+                    Ask anything about your career map. I will answer in simple English based on your verified analysis.
+                  </p>
+                </div>
+              </div>
+
+              {/* Suggestion Chips */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[
+                  "Why is this my biggest gap?",
+                  "What should I do first?",
+                  "What can I skip for now?",
+                  "I only have 3 months. What should I prioritize?",
+                ].map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleInlineAsk(chip)}
+                    className="rounded-full border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] hover:border-[#ac1ed6]/50 text-xs text-[#d5d0dd] hover:text-white px-3.5 py-1.5 transition-all text-left"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+
+              {/* Inline Input Bar */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleInlineAsk();
+                }}
+                className="flex items-center gap-2 pt-2"
+              >
+                <input
+                  type="text"
+                  value={inlineQuestion}
+                  onChange={(e) => setInlineQuestion(e.target.value)}
+                  placeholder="Type a question about your career map (e.g. Can I close this gap without an MBA?)..."
+                  className="flex-1 rounded-full border border-white/10 bg-[#121016] px-5 py-3 text-xs text-white placeholder:text-[#757080] focus:border-[#ac1ed6] focus:outline-none focus:ring-1 focus:ring-[#ac1ed6]"
+                />
+                <button
+                  type="submit"
+                  disabled={!inlineQuestion.trim()}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/25 disabled:opacity-40 transition-all hover:scale-105 active:scale-95"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 2: CAREER TRAJECTORY INTELLIGENCE */}
+        {/* TAB 2: TRAJECTORY INTELLIGENCE */}
         {/* ========================================================================= */}
         {activeTab === "trajectories" && trajectory_analysis && (
-          <div className="space-y-8">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">
-                Career Trajectory Intelligence
-              </h2>
-              <p className="text-xs sm:text-sm text-[#9a93a5]">
-                How successful professionals navigated from technical backgrounds to {target_role}.
-              </p>
-            </div>
-            <TrajectoryVisualizer trajectory={trajectory_analysis} />
-          </div>
+          <TrajectoryVisualizer
+            trajectory={trajectory_analysis}
+            onAskWhy={handleAskWhy}
+          />
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 3: TRIANGULATED GAP MAP */}
+        {/* TAB 3: GAP MAP */}
         {/* ========================================================================= */}
         {activeTab === "gaps" && gap_analysis && (
           <div className="space-y-8">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">
-                Triangulated Gap Analysis
-              </h2>
-              <p className="text-xs sm:text-sm text-[#9a93a5]">
-                Each gap is justified by triple triangulation: Candidate Evidence + Market Demand + Trajectory Precedent.
-              </p>
+            {/* WHAT THIS MEANS FOR YOU - Gaps Callout */}
+            <div className="rounded-3xl border border-[#c26e73]/30 bg-[#c26e73]/5 p-5 sm:p-6 shadow-sm">
+              <div className="flex items-start gap-3.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#c26e73]/20 text-[#c26e73] shrink-0 mt-0.5">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#c26e73]">
+                    What This Means For You
+                  </h4>
+                  <p className="text-xs sm:text-sm text-white font-medium leading-relaxed">
+                    Your biggest issue isn&apos;t a lack of intelligence or basic capability. It is a lack of visible domain-specific proof-of-work. Focus on closing evidence gaps before submitting applications.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Skill Gaps */}
-            {gap_analysis.skillGaps?.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-[#ac1ed6] flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  Skill & Competency Gaps ({gap_analysis.skillGaps.length})
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {gap_analysis.skillGaps.map((gap, idx) => (
-                    <GapCard key={idx} gap={gap} />
-                  ))}
+            {/* Gap List */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                    Triangulated Gap Map
+                  </h2>
+                  <p className="text-xs text-[#9a93a5]">
+                    Where your candidate proof diverges from market demands and trajectory benchmarks.
+                  </p>
                 </div>
+                <span className="text-xs font-mono text-[#757080]">
+                  {allGaps.length} Gaps Identified
+                </span>
               </div>
-            )}
 
-            {/* Experience Gaps */}
-            {gap_analysis.experienceGaps?.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-[#c26e73] flex items-center gap-2">
-                  <Building className="h-4 w-4" />
-                  Experience & Scope Gaps ({gap_analysis.experienceGaps.length})
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {gap_analysis.experienceGaps.map((gap, idx) => (
-                    <GapCard key={idx} gap={gap} />
-                  ))}
-                </div>
+                {allGaps.map((gap, idx) => (
+                  <GapCard key={idx} gap={gap} onAskWhy={handleAskWhy} />
+                ))}
               </div>
-            )}
-
-            {/* Evidence Gaps */}
-            {gap_analysis.evidenceGaps?.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  Proof-of-Work & Evidence Gaps ({gap_analysis.evidenceGaps.length})
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {gap_analysis.evidenceGaps.map((gap, idx) => (
-                    <GapCard key={idx} gap={gap} />
-                  ))}
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 4: PERSONALISED 4-STAGE PATHWAY */}
+        {/* TAB 4: ACTION PATHWAY */}
         {/* ========================================================================= */}
         {activeTab === "pathway" && pathway && (
-          <div className="space-y-8">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">
-                Personalised 4-Stage Action Pathway
-              </h2>
-              <p className="text-xs sm:text-sm text-[#9a93a5]">
-                Organized into LEARN → BUILD → DEMONSTRATE → REASSESS milestones with explicit proof-of-work criteria.
-              </p>
-            </div>
-            <PathwayTimeline pathway={pathway} />
-          </div>
+          <PathwayTimeline pathway={pathway} onAskWhy={handleAskWhy} />
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 5: MARKET INTELLIGENCE & REQUIREMENTS */}
+        {/* TAB 5: MARKET DEMAND */}
         {/* ========================================================================= */}
         {activeTab === "market" && market_analysis && (
           <div className="space-y-8">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">
-                Market Intelligence: {target_role}
-              </h2>
-              <p className="text-xs sm:text-sm text-[#9a93a5]">
-                Current industry competencies, tooling, and hiring expectations.
-              </p>
+            {/* WHAT THIS MEANS FOR YOU - Market Callout */}
+            <div className="rounded-3xl border border-blue-500/30 bg-blue-500/5 p-5 sm:p-6 shadow-sm">
+              <div className="flex items-start gap-3.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-500/20 text-blue-400 shrink-0 mt-0.5">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-blue-400">
+                    What This Means For You
+                  </h4>
+                  <p className="text-xs sm:text-sm text-white font-medium leading-relaxed">
+                    Your technical foundation gives you a solid start, but domain-specific tooling and measurable outcomes matter far more for your next interview than generic course certificates.
+                  </p>
+                </div>
+              </div>
             </div>
 
+            {/* Overview & Core Skills */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* High Priority Competencies */}
               <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
                 <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#ac1ed6]" />
-                  Core Required Competencies
+                  <Layers className="h-4 w-4 text-[#ac1ed6]" />
+                  Market Expectations
                 </h3>
-                <div className="space-y-2.5">
-                  {market_analysis.recurringSkills?.map((skill, idx) => (
-                    <div key={idx} className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3 flex items-center justify-between">
-                      <span className="font-bold text-xs text-white">{skill}</span>
-                      <span className="text-[10px] font-mono text-[#c26e73] uppercase">High Demand</span>
-                    </div>
-                  ))}
+                <p className="text-xs sm:text-sm text-[#9a93a5] leading-relaxed">
+                  {market_analysis.marketOverview}
+                </p>
+
+                <div className="pt-4 border-t border-white/[0.06] space-y-2">
+                  <h4 className="text-xs font-bold text-white">Recurring In-Demand Skills</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {market_analysis.recurringSkills?.map((skill, idx) => (
+                      <span
+                        key={idx}
+                        className="rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1 text-xs text-[#d5d0dd]"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* In-Demand Tools & Technologies */}
+              {/* Tools & Responsibilities */}
               <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
                 <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
                   <Layers className="h-4 w-4 text-[#c26e73]" />
@@ -632,7 +873,11 @@ export default function ResultsPage({
       {/* FLOATING ASK MACOS TRIGGER BUTTON */}
       <div className="fixed bottom-6 right-6 z-40">
         <Button
-          onClick={() => setIsChatOpen(true)}
+          onClick={() => {
+            setSelectedFocusItem(undefined);
+            setChatInitialQuestion(undefined);
+            setIsChatOpen(true);
+          }}
           size="lg"
           className="h-14 px-6 rounded-full bg-gradient-to-r from-[#ac1ed6] via-[#b32dd4] to-[#c26e73] hover:opacity-95 text-white shadow-xl shadow-[#ac1ed6]/30 border border-white/20 font-bold gap-2.5 transition-all hover:scale-105 active:scale-95"
         >
@@ -647,6 +892,9 @@ export default function ResultsPage({
         targetRole={target_role}
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
+        activeSection={activeTab}
+        focusedItem={selectedFocusItem}
+        initialQuestion={chatInitialQuestion}
       />
     </div>
   );

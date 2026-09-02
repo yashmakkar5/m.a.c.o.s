@@ -145,6 +145,29 @@ export default function HomePage() {
         </section>
       </div>
 
+      {/* SECTION: PRODUCT PHILOSOPHY & AMBITION IN ACTION */}
+      <section className="relative py-14 border-t border-white/[0.06] bg-gradient-to-r from-transparent via-[#121016]/70 to-transparent">
+        <div className="container mx-auto max-w-3xl px-4 sm:px-6 text-center space-y-4">
+          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#d5d0dd]">
+            <Sparkles className="h-3 w-3 text-[#ac1ed6]" />
+            <span>The M.A.C.O.S. Philosophy</span>
+          </div>
+
+          <blockquote className="text-xl sm:text-2xl lg:text-3xl font-serif italic text-white tracking-tight leading-snug max-w-2xl mx-auto">
+            &ldquo;Ambition without action becomes anxiety.&rdquo;
+          </blockquote>
+
+          <div className="space-y-1.5 pt-1">
+            <p className="text-xs sm:text-sm font-bold text-[#c26e73]">
+              — John A. Shedd
+            </p>
+            <p className="text-xs sm:text-sm text-[#9a93a5] max-w-xl mx-auto leading-relaxed">
+              Yash Makkar believes in turning ambition into action. M.A.C.O.S. is built around a simple belief: ambition becomes meaningful when it has a direction and a next step. <span className="text-white font-semibold">You have a destination. Let&apos;s build the route.</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* SECTION 2: THE 5-STEP VISUAL COMPASS */}
       <section className="py-20 border-t border-white/[0.07] relative">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">

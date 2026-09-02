@@ -1,31 +1,42 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-let supabaseInstance: SupabaseClient | null = null;
+let clientInstance: SupabaseClient | null = null;
 
 /**
- * Returns a Supabase client if environment variables are configured, or null otherwise.
+ * Returns true if the public Supabase configuration is present.
  */
-export function getSupabaseClient(): SupabaseClient | null {
-  if (supabaseInstance) {
-    return supabaseInstance;
+export function isSupabasePublicConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  return Boolean(url && anonKey);
+}
+
+/**
+ * Client-safe Supabase instance.
+ * Uses ONLY public environment variables (URL + Anon key).
+ * NEVER accesses the service role key.
+ */
+export function getBrowserSupabaseClient(): SupabaseClient | null {
+  if (clientInstance) {
+    return clientInstance;
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!url || !anonKey) {
     return null;
   }
 
   try {
-    supabaseInstance = createClient(supabaseUrl, supabaseKey, {
-      auth: { persistSession: false },
+    clientInstance = createClient(url, anonKey, {
+      auth: {
+        persistSession: false,
+      },
     });
-    return supabaseInstance;
+    return clientInstance;
   } catch (err) {
-    console.error("[M.A.C.O.S. Supabase] Client initialization error:", err);
+    console.error("[M.A.C.O.S. Supabase Client] Initialization error:", err);
     return null;
   }
 }

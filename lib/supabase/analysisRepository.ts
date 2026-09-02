@@ -1,4 +1,4 @@
-import { getSupabaseClient } from "./client";
+import { getServerSupabaseClient as getSupabaseClient } from "./server";
 import {
   AnalysisRecord,
   AnalysisStatus,

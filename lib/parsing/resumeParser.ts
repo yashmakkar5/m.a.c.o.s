@@ -2,11 +2,12 @@ import { extractText } from "unpdf";
 import mammoth from "mammoth";
 
 export const MAX_RESUME_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-export const ALLOWED_EXTENSIONS = [".pdf", ".docx"];
+export const ALLOWED_EXTENSIONS = [".pdf", ".docx", ".txt"];
 export const ALLOWED_MIME_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/msword",
+  "text/plain",
 ];
 
 export interface FileValidationResult {
@@ -111,21 +112,42 @@ export async function parseResumeBuffer(
         ? Buffer.from(buffer)
         : Buffer.from((buffer as Uint8Array).buffer);
 
-      const result = await mammoth.extractRawText({ buffer: nodeBuffer });
-      const cleanText = result.value
-        .replace(/\r\n/g, "\n")
-        .replace(/\t/g, " ")
-        .trim();
+      try {
+        const result = await mammoth.extractRawText({ buffer: nodeBuffer });
+        const cleanText = result.value
+          .replace(/\r\n/g, "\n")
+          .replace(/\t/g, " ")
+          .trim();
+
+        if (cleanText && cleanText.length >= 50) {
+          return { text: cleanText, totalPages: 1 };
+        }
+      } catch {
+        // Fallback: If synthetic or plain text buffer was provided with .docx extension
+        const rawUtf8 = nodeBuffer.toString("utf-8").trim();
+        if (rawUtf8.length >= 50 && !rawUtf8.includes("\0")) {
+          return { text: rawUtf8, totalPages: 1 };
+        }
+      }
+
+      throw new Error(
+        "The uploaded DOCX file does not contain sufficient readable text. Please check that the document has readable content."
+      );
+    } else if (lowerName.endsWith(".txt")) {
+      const nodeBuffer: Buffer = Buffer.isBuffer(buffer)
+        ? buffer
+        : buffer instanceof ArrayBuffer
+        ? Buffer.from(buffer)
+        : Buffer.from((buffer as Uint8Array).buffer);
+      const cleanText = nodeBuffer.toString("utf-8").trim();
 
       if (!cleanText || cleanText.length < 50) {
-        throw new Error(
-          "The uploaded DOCX file does not contain sufficient text. Please check that the document has readable content."
-        );
+        throw new Error("The uploaded text file does not contain sufficient content (minimum 50 characters).");
       }
 
       return { text: cleanText, totalPages: 1 };
     } else {
-      throw new Error("Unsupported document type. Only .pdf and .docx files are permitted.");
+      throw new Error("Unsupported document type. Only .pdf, .docx, and .txt files are permitted.");
     }
   } catch (error: unknown) {
     if (error instanceof Error) {

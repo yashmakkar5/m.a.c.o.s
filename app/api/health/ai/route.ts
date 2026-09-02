@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isGeminiConfigured, pingGemini } from "@/lib/ai/gemini";
+import { isGeminiConfigured, pingGemini, DEFAULT_GEMINI_MODEL } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,9 @@ export async function GET() {
       configured: false,
       provider: "Gemini",
       status: "not_configured",
-    });
+      model: DEFAULT_GEMINI_MODEL,
+      error: "Gemini authentication failed: GEMINI_API_KEY is not configured.",
+    }, { status: 503 });
   }
 
   const result = await pingGemini();
@@ -19,6 +21,7 @@ export async function GET() {
       configured: true,
       provider: "Gemini",
       status: "ok",
+      model: result.model,
       latencyMs: result.latencyMs,
     });
   }
@@ -28,7 +31,8 @@ export async function GET() {
       configured: true,
       provider: "Gemini",
       status: "error",
-      message: result.error || "Failed to communicate with Gemini API.",
+      model: result.model,
+      error: result.error || "Failed to communicate with Gemini API.",
     },
     { status: 502 }
   );

@@ -32,9 +32,9 @@ export default async function DebugPage() {
       geminiStatus = {
         name: "Gemini AI Engine",
         status: "Connected",
-        badge: `Live (${ping.latencyMs}ms)`,
+        badge: `${ping.model} (${ping.latencyMs}ms)`,
         isOk: true,
-        detail: "Official Google GenAI SDK initialized, responsive, and verified.",
+        detail: `Official Google GenAI SDK connected to ${ping.model} and responsive.`,
       };
     } else {
       geminiStatus = {

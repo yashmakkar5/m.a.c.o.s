@@ -50,9 +50,14 @@ Extract the candidate's education, experience, projects, certifications, achieve
 Return the result strictly conforming to the requested schema.
 `.trim();
 
-  return await generateStructuredJson<CandidateProfile>({
+  const profile = await generateStructuredJson<CandidateProfile>({
     systemInstruction: PROFILE_EXTRACTOR_SYSTEM_PROMPT,
     prompt: userPrompt,
     schema: CandidateProfileSchema,
   });
+
+  return {
+    ...profile,
+    targetRole: targetRole || profile.targetRole || "Target Role",
+  };
 }

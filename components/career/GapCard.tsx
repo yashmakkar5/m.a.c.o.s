@@ -7,67 +7,70 @@ interface GapCardProps {
 }
 
 export function GapCard({ gap }: GapCardProps) {
-  const priorityColors = {
-    critical: "bg-destructive/10 text-destructive border-destructive/20",
-    high: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-    medium: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  const priorityBadges = {
+    critical: "bg-red-500/10 text-red-400 border-red-500/30 shadow-xs",
+    high: "bg-[#c26e73]/15 text-[#c26e73] border-[#c26e73]/30 shadow-xs",
+    medium: "bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-xs",
   };
 
   return (
-    <div className="rounded-xl border bg-card p-4 sm:p-5 transition-all hover:border-foreground/20 hover:shadow-sm space-y-3">
+    <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-5 sm:p-6 transition-all duration-300 hover:border-white/20 hover:bg-[#16131c] shadow-lg space-y-4">
+      {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <h4 className="font-semibold text-sm sm:text-base text-foreground flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+        <h4 className="font-bold text-sm sm:text-base text-white flex items-center gap-2.5">
+          <AlertCircle className="h-4 w-4 text-[#c26e73] shrink-0" />
           {gap.gap}
         </h4>
         <span
-          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shrink-0 ${
-            priorityColors[gap.priority] || priorityColors.medium
+          className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shrink-0 ${
+            priorityBadges[gap.priority] || priorityBadges.medium
           }`}
         >
           {gap.priority}
         </span>
       </div>
 
+      {/* Triple Triangulation Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-xs">
-        {/* Triangulation 1: Candidate Evidence */}
-        <div className="rounded-lg bg-muted/50 p-3 space-y-1">
-          <div className="flex items-center gap-1.5 font-medium text-foreground text-[11px]">
-            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-            Current State
+        {/* 1. Candidate Evidence */}
+        <div className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3.5 space-y-1.5">
+          <div className="flex items-center gap-1.5 font-bold text-white text-[11px]">
+            <CheckCircle2 className="h-3.5 w-3.5 text-blue-400" />
+            Candidate Evidence
           </div>
-          <p className="text-muted-foreground text-[11px] leading-relaxed">
+          <p className="text-[#9a93a5] text-[11px] leading-relaxed">
             {gap.candidateEvidence}
           </p>
         </div>
 
-        {/* Triangulation 2: Market Requirement */}
-        <div className="rounded-lg bg-muted/50 p-3 space-y-1">
-          <div className="flex items-center gap-1.5 font-medium text-foreground text-[11px]">
-            <BarChart2 className="h-3.5 w-3.5 text-amber-500" />
-            Market Demand
+        {/* 2. Market Requirement */}
+        <div className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3.5 space-y-1.5">
+          <div className="flex items-center gap-1.5 font-bold text-white text-[11px]">
+            <BarChart2 className="h-3.5 w-3.5 text-[#c26e73]" />
+            Market Expectation
           </div>
-          <p className="text-muted-foreground text-[11px] leading-relaxed">
+          <p className="text-[#9a93a5] text-[11px] leading-relaxed">
             {gap.marketRequirement}
           </p>
         </div>
 
-        {/* Triangulation 3: Trajectory Signal */}
-        <div className="rounded-lg bg-muted/50 p-3 space-y-1">
-          <div className="flex items-center gap-1.5 font-medium text-foreground text-[11px]">
-            <Compass className="h-3.5 w-3.5 text-blue-500" />
+        {/* 3. Trajectory Precedent */}
+        <div className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3.5 space-y-1.5">
+          <div className="flex items-center gap-1.5 font-bold text-white text-[11px]">
+            <Compass className="h-3.5 w-3.5 text-[#ac1ed6]" />
             Trajectory Precedent
           </div>
-          <p className="text-muted-foreground text-[11px] leading-relaxed">
+          <p className="text-[#9a93a5] text-[11px] leading-relaxed">
             {gap.trajectorySignal}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1 border-t">
-        <ArrowUpRight className="h-3.5 w-3.5 text-primary" />
+      {/* Impact on Readiness Footer */}
+      <div className="flex items-center gap-2 text-[11px] text-[#9a93a5] pt-2 border-t border-white/[0.06]">
+        <ArrowUpRight className="h-3.5 w-3.5 text-[#ac1ed6] shrink-0" />
         <span>
-          <strong className="text-foreground">Impact on Readiness:</strong> {gap.impactOnReadiness}
+          <strong className="text-white">Why it matters for readiness:</strong> {gap.impactOnReadiness}
         </span>
       </div>
     </div>

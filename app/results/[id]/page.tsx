@@ -11,11 +11,13 @@ import {
   CheckCircle2,
   FileText,
   ShieldCheck,
-  MessageSquare,
   ExternalLink,
-  Loader2,
-  Info,
+  Sparkles,
   Award,
+  Layers,
+  BookOpen,
+  ArrowUpRight,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnalysisRecord } from "@/types";
@@ -23,6 +25,8 @@ import { TrajectoryVisualizer } from "@/components/career/TrajectoryVisualizer";
 import { GapCard } from "@/components/career/GapCard";
 import { PathwayTimeline } from "@/components/career/PathwayTimeline";
 import { AskMacOsDrawer } from "@/components/chat/AskMacOsDrawer";
+
+type TabKey = "overview" | "trajectories" | "gaps" | "pathway" | "market" | "profile" | "sources";
 
 export default function ResultsPage({
   params,
@@ -36,7 +40,7 @@ export default function ResultsPage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"pathway" | "trajectories" | "gaps" | "market" | "profile">("pathway");
+  const [activeTab, setActiveTab] = useState<TabKey>("overview");
 
   useEffect(() => {
     async function loadAnalysis() {
@@ -62,10 +66,15 @@ export default function ResultsPage({
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center p-12 space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm font-medium text-muted-foreground">
-          Loading your Career Map...
+      <div className="flex flex-1 flex-col items-center justify-center p-16 space-y-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-xl shadow-[#ac1ed6]/30 animate-pulse">
+          <Compass className="h-7 w-7 animate-spin" />
+        </div>
+        <p className="text-sm font-bold text-white tracking-wide">
+          Rendering your M.A.C.O.S. Career Map...
+        </p>
+        <p className="text-xs text-[#9a93a5]">
+          Triangulating candidate evidence with trajectory intelligence
         </p>
       </div>
     );
@@ -73,16 +82,18 @@ export default function ResultsPage({
 
   if (error || !analysis) {
     return (
-      <div className="container mx-auto max-w-2xl px-4 py-16 text-center space-y-4">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-          <AlertCircle className="h-6 w-6" />
+      <div className="container mx-auto max-w-2xl px-4 py-20 text-center space-y-6">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-red-500/10 text-red-400 border border-red-500/20">
+          <AlertCircle className="h-8 w-8" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Analysis Not Found</h2>
-        <p className="text-sm text-muted-foreground">
-          {error || "The requested career map could not be found or has expired."}
-        </p>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-extrabold text-white">Career Map Not Found</h2>
+          <p className="text-sm text-[#9a93a5] max-w-md mx-auto">
+            {error || "The requested career map could not be retrieved from the database."}
+          </p>
+        </div>
         <Link href="/analyze">
-          <Button size="sm" className="gap-2">
+          <Button size="lg" className="rounded-full bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] text-white font-bold gap-2">
             <ArrowLeft className="h-4 w-4" />
             Build New Career Map
           </Button>
@@ -103,330 +114,331 @@ export default function ResultsPage({
     pathway,
   } = analysis;
 
-  const readinessScore = gap_analysis?.readinessScore ?? 65;
+  const sources = [
+    ...(market_analysis?.sources || []),
+    ...(trajectory_analysis?.sources || []),
+  ];
+
+  const readinessScore = gap_analysis?.readinessScore ?? 68;
+
+  const tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { key: "overview", label: "Overview", icon: Compass },
+    { key: "trajectories", label: "Trajectory Intelligence", icon: TrendingUp },
+    { key: "gaps", label: "Gap Map", icon: Target },
+    { key: "pathway", label: "Action Pathway", icon: BookOpen },
+    { key: "market", label: "Market Demand", icon: Layers },
+    { key: "profile", label: "Current Evidence", icon: FileText },
+    { key: "sources", label: "Research Sources", icon: ExternalLink },
+  ];
 
   return (
-    <div className="min-h-screen bg-background pb-16">
-      {/* Header Bar */}
-      <div className="border-b bg-card/60 sticky top-16 z-30 backdrop-blur-md">
+    <div className="min-h-screen bg-[#090607] pb-24 text-white">
+      {/* TOP STICKY BAR: DESTINATION HERO & READINESS INDICATOR */}
+      <div className="border-b border-white/[0.08] bg-[#090607]/80 sticky top-16 z-30 backdrop-blur-xl">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Link
                   href="/analyze"
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  className="text-xs text-[#9a93a5] hover:text-white flex items-center gap-1 transition-colors"
                 >
-                  <ArrowLeft className="h-3 w-3" /> Back
+                  <ArrowLeft className="h-3 w-3" /> New Intake
                 </Link>
-                <span className="text-muted-foreground/50">•</span>
-                <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                  Career Map
-                </span>
+                <span className="text-white/20">•</span>
+                <span className="text-xs font-mono text-[#ac1ed6]">CAREER MAP</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-                {target_role}
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                  {target_role}
+                </h1>
                 {target_company && (
-                  <span className="text-sm sm:text-base font-normal text-muted-foreground">
-                    at {target_company}
+                  <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2.5 py-0.5 text-xs text-[#d5d0dd] flex items-center gap-1">
+                    <Building className="h-3 w-3 text-[#c26e73]" />
+                    {target_company}
                   </span>
                 )}
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                Candidate: <strong>{candidate_profile?.fullName || "Candidate"}</strong> • Industry: {target_industry || "Technology"}
-              </p>
+                {target_industry && (
+                  <span className="rounded-full bg-white/[0.04] px-2.5 py-0.5 text-xs text-[#9a93a5]">
+                    {target_industry}
+                  </span>
+                )}
+              </div>
             </div>
 
+            {/* Readiness Gauge & Ask MACOS Button */}
             <div className="flex items-center gap-4">
-              {/* Readiness Score Card */}
-              <div className="flex items-center gap-3 rounded-xl border bg-background px-3 py-2 shadow-2xs">
-                <div className="text-right">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                    Readiness
-                  </span>
-                  <span className="text-lg font-black text-primary">
-                    {readinessScore}
-                    <span className="text-xs font-normal text-muted-foreground">/100</span>
+              <div className="flex items-center gap-3 rounded-2xl bg-[#121016] border border-white/[0.08] px-4 py-2 shadow-sm">
+                <div className="relative flex h-10 w-10 items-center justify-center">
+                  <svg className="h-10 w-10 -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-white/[0.08]"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-[#ac1ed6]"
+                      strokeDasharray={`${readinessScore}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <span className="absolute text-[11px] font-extrabold text-white">
+                    {readinessScore}%
                   </span>
                 </div>
-                <div className="h-8 w-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="bg-primary w-full transition-all duration-1000"
-                    style={{ height: `${readinessScore}%` }}
-                  />
+                <div className="text-left">
+                  <p className="text-[10px] uppercase font-bold text-[#757080] tracking-wider">
+                    Role Readiness
+                  </p>
+                  <p className="text-xs font-bold text-emerald-400">
+                    {readinessScore >= 70 ? "Competitive" : "Progression Needed"}
+                  </p>
                 </div>
               </div>
 
-              {/* Chat CTA */}
               <Button
                 onClick={() => setIsChatOpen(true)}
-                className="gap-2 shadow-sm font-semibold"
                 size="sm"
+                className="gap-2 rounded-full bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] hover:opacity-95 text-white border-0 font-bold text-xs h-10 px-4 shadow-md shadow-[#ac1ed6]/20 transition-all hover:scale-105 active:scale-95"
               >
-                <MessageSquare className="h-4 w-4" />
-                Ask M.A.C.O.S.
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Ask M.A.C.O.S.</span>
               </Button>
             </div>
           </div>
 
-          {/* Research Provenance Banner */}
-          {market_analysis?.isControlledFallback && (
-            <div className="mt-3 flex items-center justify-between rounded-lg bg-muted/60 px-3 py-1.5 text-[11px] text-muted-foreground border">
-              <span className="flex items-center gap-1.5">
-                <Info className="h-3.5 w-3.5 text-primary" />
-                <span>
-                  <strong>Prototype Provenance:</strong> Market and trajectory intelligence synthesized from verified controlled benchmark datasets.
-                </span>
-              </span>
-              <span className="font-mono text-[10px] uppercase text-primary font-bold">
-                Controlled Research Data
-              </span>
-            </div>
-          )}
-
-          {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-4 border-t mt-3 text-xs font-semibold">
-            <button
-              onClick={() => setActiveTab("pathway")}
-              className={`pb-2 border-b-2 transition-all shrink-0 flex items-center gap-1.5 ${
-                activeTab === "pathway"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Compass className="h-3.5 w-3.5" />
-              Personalised Pathway ({pathway?.milestones?.length || 0})
-            </button>
-            <button
-              onClick={() => setActiveTab("trajectories")}
-              className={`pb-2 border-b-2 transition-all shrink-0 flex items-center gap-1.5 ${
-                activeTab === "trajectories"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <TrendingUp className="h-3.5 w-3.5" />
-              Trajectory Intelligence
-            </button>
-            <button
-              onClick={() => setActiveTab("gaps")}
-              className={`pb-2 border-b-2 transition-all shrink-0 flex items-center gap-1.5 ${
-                activeTab === "gaps"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <AlertCircle className="h-3.5 w-3.5" />
-              Triangulated Gap Map
-            </button>
-            <button
-              onClick={() => setActiveTab("market")}
-              className={`pb-2 border-b-2 transition-all shrink-0 flex items-center gap-1.5 ${
-                activeTab === "market"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Building className="h-3.5 w-3.5" />
-              Market Expectations
-            </button>
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`pb-2 border-b-2 transition-all shrink-0 flex items-center gap-1.5 ${
-                activeTab === "profile"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <FileText className="h-3.5 w-3.5" />
-              Current Profile & Evidence
-            </button>
+          {/* TAB NAVIGATION BAR (Pill buttons) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-4 no-scrollbar">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold transition-all ${
+                    isActive
+                      ? "bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/20"
+                      : "bg-white/[0.04] text-[#9a93a5] hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <main className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Competitive Advantage Card */}
-        {gap_analysis?.keyCompetitiveAdvantage && (
-          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5 flex items-start gap-3">
-            <Award className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-            <div className="space-y-0.5 text-xs sm:text-sm">
-              <span className="font-bold text-foreground">
-                Your Primary Competitive Advantage:
-              </span>
-              <p className="text-muted-foreground">
-                {gap_analysis.keyCompetitiveAdvantage}
-              </p>
+      {/* MAIN CONTENT PANELS */}
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
+        {/* ========================================================================= */}
+        {/* TAB 1: OVERVIEW / COMPLETE CAREER MAP */}
+        {/* ========================================================================= */}
+        {activeTab === "overview" && (
+          <div className="space-y-8">
+            {/* Top Insight Card: Competitive Advantage */}
+            <div className="rounded-3xl border border-white/[0.08] bg-gradient-to-r from-[#ac1ed6]/15 via-[#121016] to-[#c26e73]/10 p-6 sm:p-8 shadow-xl">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md shrink-0">
+                  <Award className="h-6 w-6 stroke-[2.2]" />
+                </div>
+                <div className="space-y-1 flex-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#ac1ed6]">
+                    Competitive Advantage Synthesis
+                  </span>
+                  <h3 className="text-lg sm:text-xl font-bold text-white">
+                    {candidate_profile?.fullName || "Candidate"} &apos;s Unique Strategic Edge
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#9a93a5] leading-relaxed pt-1">
+                    {gap_analysis?.keyCompetitiveAdvantage ||
+                      "Strong foundational software engineering execution with demonstrated project delivery. High leverage potential for technical product scope."}
+                  </p>
+                </div>
+              </div>
             </div>
+
+            {/* Quick 3-Pillar Summary Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Pillar A: Trajectory Signal */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white">
+                    <TrendingUp className="h-4 w-4 text-[#ac1ed6]" />
+                    Trajectory Precedent
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("trajectories")}
+                    className="text-[11px] font-bold text-[#ac1ed6] hover:underline flex items-center gap-0.5"
+                  >
+                    Details <ArrowUpRight className="h-3 w-3" />
+                  </button>
+                </div>
+                <p className="text-xs text-[#9a93a5] leading-relaxed">
+                  {trajectory_analysis?.evidencePatterns?.[0] ||
+                    "Transitioning candidates succeed by delivering verifiable proof-of-work rather than relying on pedigree."}
+                </p>
+                <div className="rounded-2xl bg-[#090607]/80 p-3 border border-white/[0.06] text-[11px] text-[#d5d0dd]">
+                  <span className="font-bold text-[#c26e73]">Key Catalyst: </span>
+                  {trajectory_analysis?.commonTransitions?.[0]?.transitionCatalyst ||
+                    "Demonstrated ownership of product telemetry and technical specifications."}
+                </div>
+              </div>
+
+              {/* Pillar B: Primary Critical Gap */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white">
+                    <Target className="h-4 w-4 text-[#c26e73]" />
+                    Top Critical Gap
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("gaps")}
+                    className="text-[11px] font-bold text-[#c26e73] hover:underline flex items-center gap-0.5"
+                  >
+                    View All <ArrowUpRight className="h-3 w-3" />
+                  </button>
+                </div>
+                <p className="text-xs font-bold text-white">
+                  {gap_analysis?.skillGaps?.[0]?.gap || "Product Strategy & Metric Instrumentation"}
+                </p>
+                <p className="text-xs text-[#9a93a5] leading-relaxed">
+                  {gap_analysis?.skillGaps?.[0]?.impactOnReadiness ||
+                    "Required for hiring managers to evaluate cross-functional ownership."}
+                </p>
+                <div className="rounded-2xl bg-[#090607]/80 p-3 border border-white/[0.06] text-[11px] text-[#d5d0dd]">
+                  <span className="font-bold text-[#ac1ed6]">Market Expectation: </span>
+                  {gap_analysis?.skillGaps?.[0]?.marketRequirement || "Proven product discovery telemetry."}
+                </div>
+              </div>
+
+              {/* Pillar C: Immediate Action */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white">
+                    <BookOpen className="h-4 w-4 text-emerald-400" />
+                    Immediate Next Action
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("pathway")}
+                    className="text-[11px] font-bold text-emerald-400 hover:underline flex items-center gap-0.5"
+                  >
+                    Pathway <ArrowUpRight className="h-3 w-3" />
+                  </button>
+                </div>
+                <p className="text-xs font-bold text-white">
+                  {pathway?.milestones?.[0]?.title || "Stage 1: Core Competency Sprint"}
+                </p>
+                <p className="text-xs text-[#9a93a5] leading-relaxed">
+                  {pathway?.milestones?.[0]?.action ||
+                    "Review product metrics and build proof-of-work case studies."}
+                </p>
+                <div className="rounded-2xl bg-[#090607]/80 p-3 border border-white/[0.06] text-[11px] text-emerald-400">
+                  <span className="font-bold text-white">Proof-of-Work: </span>
+                  {pathway?.milestones?.[0]?.expectedEvidence || "Deployable technical demo."}
+                </div>
+              </div>
+            </div>
+
+            {/* Visual Trajectory Preview Section */}
+            {trajectory_analysis && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-[#ac1ed6]" />
+                    Macro Trajectory Stepping Stones
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab("trajectories")}
+                    className="text-xs font-bold text-[#ac1ed6] hover:underline"
+                  >
+                    Expand Trajectory View →
+                  </button>
+                </div>
+                <TrajectoryVisualizer trajectory={trajectory_analysis} />
+              </div>
+            )}
           </div>
         )}
 
-        {/* TAB 1: Personalised Pathway */}
-        {activeTab === "pathway" && (
-          <div className="space-y-6">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                4-Stage Personalised Action Pathway
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Sequential, evidence-first roadmap moving from knowledge acquisition to measurable public proof-of-work.
-              </p>
-            </div>
-            {pathway && <PathwayTimeline pathway={pathway} />}
-          </div>
-        )}
-
-        {/* TAB 2: Career Trajectory Intelligence */}
-        {activeTab === "trajectories" && (
-          <div className="space-y-6">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Macro Career Trajectory Patterns
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Aggregated insights from professionals who successfully navigated the transition into {target_role}.
-              </p>
-            </div>
-            {trajectory_analysis && <TrajectoryVisualizer trajectory={trajectory_analysis} />}
-          </div>
-        )}
-
-        {/* TAB 3: Triangulated Gap Map */}
-        {activeTab === "gaps" && (
+        {/* ========================================================================= */}
+        {/* TAB 2: CAREER TRAJECTORY INTELLIGENCE */}
+        {/* ========================================================================= */}
+        {activeTab === "trajectories" && trajectory_analysis && (
           <div className="space-y-8">
             <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">
+                Career Trajectory Intelligence
+              </h2>
+              <p className="text-xs sm:text-sm text-[#9a93a5]">
+                How successful professionals navigated from technical backgrounds to {target_role}.
+              </p>
+            </div>
+            <TrajectoryVisualizer trajectory={trajectory_analysis} />
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 3: TRIANGULATED GAP MAP */}
+        {/* ========================================================================= */}
+        {activeTab === "gaps" && gap_analysis && (
+          <div className="space-y-8">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">
                 Triangulated Gap Analysis
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Every gap is strictly supported by: Your Evidence + Market Requirement + Trajectory Signal.
+              <p className="text-xs sm:text-sm text-[#9a93a5]">
+                Each gap is justified by triple triangulation: Candidate Evidence + Market Demand + Trajectory Precedent.
               </p>
             </div>
 
             {/* Skill Gaps */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                1. Skill Competency Gaps
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {gap_analysis?.skillGaps?.map((gap, i) => (
-                  <GapCard key={i} gap={gap} />
-                ))}
-              </div>
-            </div>
-
-            {/* Experience Gaps */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                2. Experience & Scope Gaps
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {gap_analysis?.experienceGaps?.map((gap, i) => (
-                  <GapCard key={i} gap={gap} />
-                ))}
-              </div>
-            </div>
-
-            {/* Evidence Gaps */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                3. Evidence & Proof-of-Work Gaps
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {gap_analysis?.evidenceGaps?.map((gap, i) => (
-                  <GapCard key={i} gap={gap} />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: Market Expectations */}
-        {activeTab === "market" && market_analysis && (
-          <div className="space-y-6">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Current Market Requirements
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Synthesized expectations from industry job postings and role benchmarks for {target_role}.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="rounded-xl border bg-card p-5 space-y-3">
-                <h3 className="font-bold text-sm text-foreground">Recurring Demanded Skills</h3>
-                <ul className="space-y-1.5 text-xs text-muted-foreground">
-                  {market_analysis.recurringSkills.map((s, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                      {s}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rounded-xl border bg-card p-5 space-y-3">
-                <h3 className="font-bold text-sm text-foreground">Required Tools & Frameworks</h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {market_analysis.tools.map((t, i) => (
-                    <span key={i} className="rounded-md bg-muted px-2.5 py-1 text-xs font-mono text-muted-foreground">
-                      {t}
-                    </span>
+            {gap_analysis.skillGaps?.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-[#ac1ed6] flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Skill & Competency Gaps ({gap_analysis.skillGaps.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {gap_analysis.skillGaps.map((gap, idx) => (
+                    <GapCard key={idx} gap={gap} />
                   ))}
                 </div>
               </div>
+            )}
 
-              <div className="rounded-xl border bg-card p-5 space-y-3">
-                <h3 className="font-bold text-sm text-foreground">Core Responsibilities</h3>
-                <ul className="space-y-1.5 text-xs text-muted-foreground">
-                  {market_analysis.responsibilities.map((r, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="text-primary mt-0.5">•</span>
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rounded-xl border bg-card p-5 space-y-3">
-                <h3 className="font-bold text-sm text-foreground">Decisive Evidence Expectations</h3>
-                <ul className="space-y-1.5 text-xs text-muted-foreground">
-                  {market_analysis.evidenceExpectations.map((e, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                      {e}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Citations / Sources */}
-            {market_analysis.sources && market_analysis.sources.length > 0 && (
-              <div className="rounded-xl border bg-card p-5 space-y-3">
-                <h3 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                  Research Sources & Citations
+            {/* Experience Gaps */}
+            {gap_analysis.experienceGaps?.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-[#c26e73] flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  Experience & Scope Gaps ({gap_analysis.experienceGaps.length})
                 </h3>
-                <div className="space-y-2 text-xs">
-                  {market_analysis.sources.map((src, i) => (
-                    <div key={i} className="flex items-start justify-between gap-2 border-b pb-2 last:border-0">
-                      <div>
-                        <p className="font-semibold text-foreground">{src.title}</p>
-                        <p className="text-muted-foreground text-[11px] mt-0.5">{src.snippet}</p>
-                      </div>
-                      {src.url && (
-                        <a
-                          href={src.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline flex items-center gap-1 text-[11px] shrink-0"
-                        >
-                          Source <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {gap_analysis.experienceGaps.map((gap, idx) => (
+                    <GapCard key={idx} gap={gap} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Evidence Gaps */}
+            {gap_analysis.evidenceGaps?.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  Proof-of-Work & Evidence Gaps ({gap_analysis.evidenceGaps.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {gap_analysis.evidenceGaps.map((gap, idx) => (
+                    <GapCard key={idx} gap={gap} />
                   ))}
                 </div>
               </div>
@@ -434,90 +446,205 @@ export default function ResultsPage({
           </div>
         )}
 
-        {/* TAB 5: Current Profile & Demonstrated Skills */}
-        {activeTab === "profile" && candidate_profile && (
-          <div className="space-y-6">
+        {/* ========================================================================= */}
+        {/* TAB 4: PERSONALISED 4-STAGE PATHWAY */}
+        {/* ========================================================================= */}
+        {activeTab === "pathway" && pathway && (
+          <div className="space-y-8">
             <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Extracted Profile & Demonstrated Capabilities
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">
+                Personalised 4-Stage Action Pathway
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Objective parsing of your resume distinguishing proven evidence from stated buzzwords.
+              <p className="text-xs sm:text-sm text-[#9a93a5]">
+                Organized into LEARN → BUILD → DEMONSTRATE → REASSESS milestones with explicit proof-of-work criteria.
+              </p>
+            </div>
+            <PathwayTimeline pathway={pathway} />
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 5: MARKET INTELLIGENCE & REQUIREMENTS */}
+        {/* ========================================================================= */}
+        {activeTab === "market" && market_analysis && (
+          <div className="space-y-8">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">
+                Market Intelligence: {target_role}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#9a93a5]">
+                Current industry competencies, tooling, and hiring expectations.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* High Priority Competencies */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[#ac1ed6]" />
+                  Core Required Competencies
+                </h3>
+                <div className="space-y-2.5">
+                  {market_analysis.recurringSkills?.map((skill, idx) => (
+                    <div key={idx} className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3 flex items-center justify-between">
+                      <span className="font-bold text-xs text-white">{skill}</span>
+                      <span className="text-[10px] font-mono text-[#c26e73] uppercase">High Demand</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* In-Demand Tools & Technologies */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-[#c26e73]" />
+                  Tooling & Technical Stack
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {market_analysis.tools?.map((tool, idx) => (
+                    <span
+                      key={idx}
+                      className="rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1 text-xs font-mono text-[#d5d0dd]"
+                    >
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="pt-4 border-t border-white/[0.06] space-y-2">
+                  <h4 className="text-xs font-bold text-white">Key Responsibilities</h4>
+                  <ul className="space-y-1.5 text-xs text-[#9a93a5]">
+                    {market_analysis.responsibilities?.map((resp, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#ac1ed6] shrink-0 mt-0.5" />
+                        <span>{resp}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 6: CURRENT CANDIDATE PROFILE EVIDENCE */}
+        {/* ========================================================================= */}
+        {activeTab === "profile" && candidate_profile && (
+          <div className="space-y-8">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">
+                Current Demonstrated Capabilities
+              </h2>
+              <p className="text-xs sm:text-sm text-[#9a93a5]">
+                Verified proof-of-work extracted from your resume.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Demonstrated Skills */}
-              <div className="rounded-xl border bg-card p-5 space-y-3">
-                <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  Demonstrated Skills (Supported by Evidence)
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  Demonstrated Capabilities ({skills_analysis?.demonstratedSkills?.length || 0})
                 </h3>
-                <div className="space-y-2">
-                  {skills_analysis?.demonstratedSkills?.map((ds, i) => (
-                    <div key={i} className="rounded-lg bg-muted/40 p-2.5 text-xs space-y-1">
+                <div className="space-y-2.5">
+                  {skills_analysis?.demonstratedSkills?.map((skill, idx) => (
+                    <div key={idx} className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground">{ds.skill}</span>
-                        <span className="rounded bg-emerald-500/10 text-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase">
-                          {ds.confidence} confidence
-                        </span>
+                        <span className="font-bold text-xs text-white">{skill.skill}</span>
+                        <span className="text-[10px] font-mono text-emerald-400 uppercase">{skill.confidence} confidence</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        <strong>Evidence:</strong> {ds.evidence}
-                      </p>
+                      <p className="text-[11px] text-[#9a93a5]">Evidence: {skill.evidence}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Uncertain Skills */}
-              <div className="rounded-xl border bg-card p-5 space-y-3">
-                <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-amber-500" />
-                  Uncertain Skills (Stated Without Direct Evidence)
+              {/* Projects & Work History */}
+              <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-[#ac1ed6]" />
+                  Verified Projects & Experience
                 </h3>
-                <div className="space-y-2">
-                  {skills_analysis?.uncertainSkills?.map((us, i) => (
-                    <div key={i} className="rounded-lg bg-muted/40 p-2.5 text-xs space-y-1">
-                      <span className="font-semibold text-foreground">{us.skill}</span>
-                      <p className="text-[11px] text-muted-foreground">{us.reason}</p>
+                <div className="space-y-3">
+                  {candidate_profile.projects?.map((proj, idx) => (
+                    <div key={idx} className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3 space-y-1">
+                      <span className="font-bold text-xs text-white">{proj.title}</span>
+                      <p className="text-[11px] text-[#9a93a5]">{proj.description}</p>
+                      {proj.technologies && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {proj.technologies.map((t, i) => (
+                            <span key={i} className="text-[10px] text-[#757080] font-mono">
+                              #{t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-
-            {/* Work & Projects Breakdown */}
-            <div className="rounded-xl border bg-card p-5 space-y-4">
-              <h3 className="font-bold text-sm text-foreground">Parsed Projects & Experience</h3>
-              <div className="space-y-3 text-xs">
-                {candidate_profile.experience.map((e, i) => (
-                  <div key={i} className="border-b pb-3 last:border-0">
-                    <p className="font-semibold text-foreground">{e.role} — {e.company} ({e.duration})</p>
-                    <p className="text-muted-foreground mt-0.5">{e.description}</p>
-                  </div>
-                ))}
-                {candidate_profile.projects.map((p, i) => (
-                  <div key={i} className="border-b pb-3 last:border-0">
-                    <p className="font-semibold text-foreground">Project: {p.title}</p>
-                    <p className="text-muted-foreground mt-0.5">{p.description}</p>
-                    {p.link && (
-                      <a href={p.link} target="_blank" rel="noreferrer" className="text-primary text-[11px] hover:underline">
-                        {p.link}
-                      </a>
-                    )}
-                  </div>
-                ))}
               </div>
             </div>
           </div>
         )}
-      </main>
 
-      {/* Grounded Conversational Assistant */}
+        {/* ========================================================================= */}
+        {/* TAB 7: RESEARCH SOURCES & PROVENANCE */}
+        {/* ========================================================================= */}
+        {activeTab === "sources" && (
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">
+                Research Provenance & Methodology
+              </h2>
+              <p className="text-xs sm:text-sm text-[#9a93a5]">
+                Transparent citations and evidence backing your career map.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 space-y-4 shadow-lg">
+              <h3 className="font-bold text-sm text-white">Sources Consulted ({sources.length})</h3>
+              {sources.length > 0 ? (
+                <div className="space-y-2">
+                  {sources.map((src, idx) => (
+                    <div key={idx} className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-3.5 text-xs flex items-center justify-between gap-4">
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-white">{src.title}</span>
+                        <p className="text-[11px] text-[#9a93a5] line-clamp-1">{src.snippet || src.url}</p>
+                      </div>
+                      <span className="rounded-full bg-white/[0.05] border border-white/[0.08] px-2.5 py-0.5 text-[10px] font-mono text-[#757080] shrink-0">
+                        {src.isControlledFallback ? "Controlled Data" : "Public Trajectory"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-[#9a93a5]">
+                  Analysis synthesized using Google Gemini AI and M.A.C.O.S. controlled career trajectory benchmarks.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* FLOATING ASK MACOS TRIGGER BUTTON */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <Button
+          onClick={() => setIsChatOpen(true)}
+          size="lg"
+          className="h-14 px-6 rounded-full bg-gradient-to-r from-[#ac1ed6] via-[#b32dd4] to-[#c26e73] hover:opacity-95 text-white shadow-xl shadow-[#ac1ed6]/30 border border-white/20 font-bold gap-2.5 transition-all hover:scale-105 active:scale-95"
+        >
+          <Sparkles className="h-5 w-5" />
+          <span>Ask M.A.C.O.S.</span>
+        </Button>
+      </div>
+
+      {/* GROUNDED CHAT DRAWER */}
       <AskMacOsDrawer
-        analysisId={analysis.id}
-        targetRole={analysis.target_role}
+        analysisId={id}
+        targetRole={target_role}
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
       />

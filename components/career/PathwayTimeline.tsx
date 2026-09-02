@@ -7,6 +7,7 @@ import {
   RotateCcw,
   Sparkles,
   ShieldCheck,
+  Clock,
 } from "lucide-react";
 
 interface PathwayTimelineProps {
@@ -18,46 +19,50 @@ export function PathwayTimeline({ pathway }: PathwayTimelineProps) {
 
   const stageConfig: Record<
     PathwayStage,
-    { label: string; icon: React.ComponentType<{ className?: string }>; color: string; desc: string }
+    { label: string; icon: React.ComponentType<{ className?: string }>; badgeColor: string; iconBg: string; desc: string }
   > = {
     LEARN: {
       label: "LEARN",
       icon: BookOpen,
-      color: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+      badgeColor: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+      iconBg: "bg-blue-500/20 text-blue-400",
       desc: "Acquire core conceptual & domain competencies targeted at critical gaps",
     },
     BUILD: {
       label: "BUILD",
       icon: Hammer,
-      color: "text-amber-500 bg-amber-500/10 border-amber-500/20",
-      desc: "Build tangible, working proof-of-work systems & case studies",
+      badgeColor: "bg-[#c26e73]/15 text-[#c26e73] border-[#c26e73]/30",
+      iconBg: "bg-[#c26e73]/20 text-[#c26e73]",
+      desc: "Build tangible, working proof-of-work systems & architecture case studies",
     },
     DEMONSTRATE: {
       label: "DEMONSTRATE",
       icon: Megaphone,
-      color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-      desc: "Publish, deploy, and verify artifacts publicly with measurable telemetry",
+      badgeColor: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+      iconBg: "bg-emerald-500/20 text-emerald-400",
+      desc: "Publish, deploy, and verify public artifacts with measurable metrics",
     },
     REASSESS: {
       label: "REASSESS",
       icon: RotateCcw,
-      color: "text-purple-500 bg-purple-500/10 border-purple-500/20",
-      desc: "Test readiness, evaluate milestones, and re-run M.A.C.O.S. orchestration",
+      badgeColor: "bg-[#ac1ed6]/15 text-[#ac1ed6] border-[#ac1ed6]/30",
+      iconBg: "bg-[#ac1ed6]/20 text-[#ac1ed6]",
+      desc: "Evaluate milestones, test readiness, and re-run M.A.C.O.S. calibration",
     },
   };
 
   const stages: PathwayStage[] = ["LEARN", "BUILD", "DEMONSTRATE", "REASSESS"];
 
   return (
-    <div className="space-y-6">
-      {/* Stage Filter Buttons */}
-      <div className="flex flex-wrap items-center gap-2 border-b pb-4">
+    <div className="space-y-8">
+      {/* Stage Filter Buttons (Pill design) */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.08] pb-5">
         <button
           onClick={() => setActiveStage("ALL")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+          className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
             activeStage === "ALL"
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "bg-muted text-muted-foreground hover:text-foreground"
+              ? "bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/25"
+              : "bg-white/[0.04] text-[#9a93a5] hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
           }`}
         >
           All Stages ({pathway.milestones.length})
@@ -70,10 +75,10 @@ export function PathwayTimeline({ pathway }: PathwayTimelineProps) {
             <button
               key={st}
               onClick={() => setActiveStage(st)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
                 activeStage === st
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
+                  ? "bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/25"
+                  : "bg-white/[0.04] text-[#9a93a5] hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -84,7 +89,7 @@ export function PathwayTimeline({ pathway }: PathwayTimelineProps) {
       </div>
 
       {/* Pathway Actions List */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         {stages
           .filter((st) => activeStage === "ALL" || activeStage === st)
           .map((st) => {
@@ -95,25 +100,27 @@ export function PathwayTimeline({ pathway }: PathwayTimelineProps) {
             if (actions.length === 0) return null;
 
             return (
-              <div key={st} className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl border ${cfg.color}`}>
+              <div key={st} className="space-y-5">
+                {/* Phase Section Header */}
+                <div className="flex items-center gap-3.5">
+                  <div className={`p-2.5 rounded-2xl ${cfg.iconBg} shadow-sm`}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-base tracking-tight text-foreground">
+                      <h4 className="font-extrabold text-lg text-white tracking-tight">
                         {cfg.label} Phase
                       </h4>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-[#757080]">
                         • {actions.length} {actions.length === 1 ? "Action" : "Actions"}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{cfg.desc}</p>
+                    <p className="text-xs text-[#9a93a5]">{cfg.desc}</p>
                   </div>
                 </div>
 
-                <div className="space-y-3 pl-2 sm:pl-4 border-l-2 border-border/60 ml-4">
+                {/* Action Items Column */}
+                <div className="space-y-4 pl-2 sm:pl-6 border-l-2 border-white/[0.08] ml-5">
                   {actions.map((action, idx) => (
                     <PathwayActionItem key={action.id || idx} action={action} />
                   ))}
@@ -128,64 +135,74 @@ export function PathwayTimeline({ pathway }: PathwayTimelineProps) {
 
 function PathwayActionItem({ action }: { action: PathwayAction }) {
   return (
-    <div className="rounded-xl border bg-card p-4 sm:p-5 transition-all hover:border-foreground/20 hover:shadow-sm space-y-3">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+    <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-5 sm:p-6 transition-all duration-300 hover:border-white/20 hover:bg-[#16131c] shadow-lg space-y-4">
+      {/* Action Title Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            Stage: {action.stage} • Priority: {action.priority.toUpperCase()}
-          </span>
-          <h5 className="font-bold text-sm sm:text-base text-foreground mt-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#ac1ed6]">
+              STAGE: {action.stage}
+            </span>
+            <span className="text-white/20">•</span>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#c26e73]">
+              PRIORITY: {action.priority.toUpperCase()}
+            </span>
+          </div>
+          <h5 className="font-bold text-base text-white mt-1">
             {action.title}
           </h5>
         </div>
         {action.estimatedDuration && (
-          <span className="inline-block self-start rounded bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-            ⏱ {action.estimatedDuration}
+          <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-white/[0.05] border border-white/[0.08] px-3 py-1 text-xs font-mono text-[#d5d0dd]">
+            <Clock className="h-3 w-3 text-[#ac1ed6]" />
+            {action.estimatedDuration}
           </span>
         )}
       </div>
 
-      <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">
+      <p className="text-xs sm:text-sm text-[#d5d0dd] leading-relaxed">
         {action.action}
       </p>
 
+      {/* Two Column Artifact Breakdown */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-        <div className="rounded-lg bg-muted/50 p-3 space-y-1">
-          <span className="font-medium text-foreground text-[11px] flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            Why This Matters
+        <div className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-4 space-y-2">
+          <span className="font-bold text-white text-[11px] flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-[#ac1ed6]" />
+            Why This Matters & Strategic Leverage
           </span>
-          <p className="text-muted-foreground text-[11px] leading-relaxed">
+          <p className="text-[#9a93a5] text-[11px] leading-relaxed">
             {action.whyItMatters}
           </p>
-          <p className="text-[10px] text-muted-foreground/80 mt-1">
-            <strong>Targeted Gap:</strong> {action.relatedGap}
-          </p>
+          <div className="text-[10px] text-[#757080] pt-1 border-t border-white/[0.04] flex items-center gap-1">
+            <span className="font-bold text-[#d5d0dd]">Targeted Gap:</span> {action.relatedGap}
+          </div>
         </div>
 
-        <div className="rounded-lg bg-muted/50 p-3 space-y-1">
-          <span className="font-medium text-foreground text-[11px] flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            Expected Evidence Artifact
+        <div className="rounded-2xl bg-[#090607]/80 border border-white/[0.06] p-4 space-y-2">
+          <span className="font-bold text-white text-[11px] flex items-center gap-2">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            Expected Proof-of-Work Artifact
           </span>
-          <p className="text-muted-foreground text-[11px] leading-relaxed">
+          <p className="text-[#9a93a5] text-[11px] leading-relaxed">
             {action.expectedEvidence}
           </p>
-          <p className="text-[10px] text-muted-foreground/80 mt-1">
-            <strong>Completion Criteria:</strong> {action.completionCriteria}
-          </p>
+          <div className="text-[10px] text-[#757080] pt-1 border-t border-white/[0.04] flex items-center gap-1">
+            <span className="font-bold text-[#d5d0dd]">Completion:</span> {action.completionCriteria}
+          </div>
         </div>
       </div>
 
+      {/* Recommended Resources */}
       {action.resources && action.resources.length > 0 && (
-        <div className="pt-2 border-t flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-[11px] font-medium text-muted-foreground">Recommended Resources:</span>
+        <div className="pt-3 border-t border-white/[0.06] flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-[11px] font-bold text-white">Recommended Resources:</span>
           {action.resources.map((res, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] px-3 py-1 text-[11px] text-[#9a93a5] hover:text-white transition-colors"
             >
-              <BookOpen className="h-3 w-3" />
+              <BookOpen className="h-3 w-3 text-[#ac1ed6]" />
               {res}
             </span>
           ))}

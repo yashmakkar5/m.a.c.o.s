@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, X, Bot, User, Sparkles, AlertCircle, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Send, X, Bot, Sparkles, AlertCircle, Loader2 } from "lucide-react";
 
 interface AskMacOsDrawerProps {
   analysisId: string;
@@ -21,7 +20,7 @@ const PRESET_QUESTIONS = [
   "Why is this my biggest gap?",
   "Why did you recommend this project?",
   "How did you determine my readiness?",
-  "What would make me more competitive?",
+  "What proof-of-work has highest leverage?",
 ];
 
 export function AskMacOsDrawer({
@@ -33,7 +32,7 @@ export function AskMacOsDrawer({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Hello! I'm your M.A.C.O.S. career navigation assistant. I have reviewed your profile and the trajectory intelligence for **${targetRole}**. How can I help you navigate your pathway?`,
+      content: `Hello! I'm your M.A.C.O.S. career navigation assistant. I have synthesized your profile, market expectations, and trajectory intelligence for **${targetRole}**. How can I help you navigate your pathway?`,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -98,34 +97,37 @@ export function AskMacOsDrawer({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-card border-l shadow-2xl transition-all">
+    <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-[#121016] border-l border-white/10 shadow-2xl transition-all">
       {/* Drawer Header */}
-      <div className="flex items-center justify-between border-b p-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Bot className="h-4 w-4" />
+      <div className="flex items-center justify-between border-b border-white/[0.08] p-4 bg-[#090607]/60 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/25">
+            <Sparkles className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
+            <h3 className="font-bold text-sm text-white flex items-center gap-2">
               Ask M.A.C.O.S.
-              <span className="rounded bg-primary/10 text-primary text-[10px] px-1.5 py-0.2 font-semibold uppercase">
+              <span className="rounded-full bg-[#ac1ed6]/20 border border-[#ac1ed6]/40 text-[#d5d0dd] text-[9px] px-2 py-0.5 font-bold uppercase tracking-wider">
                 Grounded
               </span>
             </h3>
-            <p className="text-[11px] text-muted-foreground">
-              Directly answers from your stored analysis
+            <p className="text-[11px] text-[#9a93a5]">
+              Answers strictly from your analysis & trajectories
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <button
+          onClick={onClose}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-[#9a93a5] hover:text-white hover:bg-white/[0.06] transition-colors"
+        >
           <X className="h-4 w-4" />
-        </Button>
+        </button>
       </div>
 
-      {/* Preset Suggestion Chips */}
-      <div className="border-b bg-muted/40 p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-          <Sparkles className="h-3 w-3 text-primary" /> Suggested Questions
+      {/* Preset Suggestion Chips (Pill design) */}
+      <div className="border-b border-white/[0.06] bg-[#090607]/40 p-3.5 space-y-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#757080] flex items-center gap-1.5">
+          <Sparkles className="h-3 w-3 text-[#ac1ed6]" /> Suggested Questions
         </p>
         <div className="flex flex-wrap gap-1.5">
           {PRESET_QUESTIONS.map((q, i) => (
@@ -133,7 +135,7 @@ export function AskMacOsDrawer({
               key={i}
               onClick={() => handleSend(q)}
               disabled={isLoading}
-              className="rounded-full border bg-background px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground disabled:opacity-50"
+              className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[11px] text-[#d5d0dd] transition-all hover:border-[#ac1ed6]/50 hover:bg-white/[0.06] hover:text-white disabled:opacity-50"
             >
               {q}
             </button>
@@ -151,44 +153,39 @@ export function AskMacOsDrawer({
             }`}
           >
             {m.role === "assistant" && (
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary mt-1">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-xs mt-1">
                 <Bot className="h-3.5 w-3.5" />
               </div>
             )}
             <div
-              className={`max-w-[85%] rounded-2xl p-3 leading-relaxed ${
+              className={`max-w-[85%] rounded-3xl p-4 leading-relaxed ${
                 m.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-br-none"
-                  : "bg-muted text-foreground rounded-bl-none border whitespace-pre-line"
+                  ? "bg-gradient-to-tr from-[#c26e73] to-[#ac1ed6] text-white rounded-br-none shadow-md shadow-[#ac1ed6]/20 font-medium"
+                  : "bg-[#191522] text-[#f4f2f5] rounded-bl-none border border-white/[0.08] shadow-sm whitespace-pre-line"
               }`}
             >
               {m.content}
               <div
-                className={`mt-1 text-[9px] ${
-                  m.role === "user" ? "text-primary-foreground/70 text-right" : "text-muted-foreground"
+                className={`mt-1.5 text-[9px] ${
+                  m.role === "user" ? "text-white/70 text-right" : "text-[#757080]"
                 }`}
               >
                 {m.timestamp}
               </div>
             </div>
-            {m.role === "user" && (
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted mt-1">
-                <User className="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
-            )}
           </div>
         ))}
 
         {isLoading && (
-          <div className="flex items-center gap-2 text-muted-foreground text-xs p-2">
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <span>M.A.C.O.S. is synthesizing analysis context...</span>
+          <div className="flex items-center gap-2.5 text-[#9a93a5] text-xs p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
+            <Loader2 className="h-4 w-4 animate-spin text-[#ac1ed6]" />
+            <span>M.A.C.O.S. is synthesizing your trajectory context...</span>
           </div>
         )}
 
         {error && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-300 flex items-center gap-2.5">
+            <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
             <span>{error}</span>
           </div>
         )}
@@ -196,8 +193,8 @@ export function AskMacOsDrawer({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Form */}
-      <div className="border-t p-3 bg-card">
+      {/* Input Form with Pill Design */}
+      <div className="border-t border-white/[0.08] p-3.5 bg-[#090607]/80 backdrop-blur-md">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -211,11 +208,15 @@ export function AskMacOsDrawer({
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about your gaps, milestones, or readiness..."
             disabled={isLoading}
-            className="flex-1 rounded-lg border bg-background px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+            className="flex-1 rounded-full border border-white/10 bg-[#121016] px-4 py-2.5 text-xs text-white placeholder:text-[#757080] focus:border-[#ac1ed6] focus:outline-none focus:ring-1 focus:ring-[#ac1ed6] disabled:opacity-50"
           />
-          <Button type="submit" size="sm" disabled={!input.trim() || isLoading}>
+          <button
+            type="submit"
+            disabled={!input.trim() || isLoading}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md shadow-[#ac1ed6]/25 disabled:opacity-40 transition-all hover:scale-105 active:scale-95"
+          >
             <Send className="h-3.5 w-3.5" />
-          </Button>
+          </button>
         </form>
       </div>
     </div>

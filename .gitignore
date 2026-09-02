@@ -13,6 +13,7 @@
 /out/
 /build
 /dist
+/.data/
 *.tsbuildinfo
 next-env.d.ts
 

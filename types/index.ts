@@ -338,7 +338,211 @@ export const PathwayOutputSchema = z
 export type PathwayOutput = z.infer<typeof PathwayOutputSchema>;
 
 // ==========================================
-// 7. Overall Analysis Entity
+// 7. Canonical Career Intelligence Types
+// ==========================================
+
+export interface ProfessionalProfile {
+  name: string;
+  currentRole: string;
+  organization?: string;
+  careerPath: string[]; // e.g. ["Software Engineer", "Product Analyst", "Product Manager"]
+  relevantTransition: string;
+  whyRelevant: string;
+  keyLearnings: string[];
+  sources: SourceReference[];
+}
+
+export interface TrajectoryStageItem {
+  stageNumber: number;
+  stageName: string;
+  typicalRole: string;
+  description: string;
+  keyFocus: string;
+  candidateRelevance?: string;
+}
+
+export interface CareerRouteItem {
+  routeId: string;
+  routeName: string; // e.g. "Route 01: Technical → Product"
+  stages: string[];
+  description: string;
+  isClosestRoute: boolean;
+  whyClosest: string;
+}
+
+export interface TrajectoryPatternItem {
+  pattern: string; // e.g. "Technical or analytical foundation"
+  observedCount: string; // e.g. "4 / 5"
+  observedIn: number;
+  sampleSize: number;
+  strength: "strong" | "moderate" | "weak";
+  evidence: string;
+}
+
+export interface JourneyComparisonItem {
+  dimension: string; // e.g. "Technical foundation", "Product exposure"
+  status: "demonstrated" | "partial" | "not_demonstrated" | "unknown";
+  evidenceSnippet: string;
+  whatItMeans: string;
+}
+
+export interface SmartGapItem {
+  id: string;
+  gap: string;
+  category: "skill" | "experience" | "evidence";
+  priority: "critical" | "high" | "medium";
+  currentEvidence: string;
+  destinationRequirement: string;
+  difference: string;
+  howToCloseIt: string;
+  proofYouCanCreate: string;
+}
+
+export interface ActionItem {
+  id: string;
+  stage: "LEARN" | "BUILD" | "DEMONSTRATE" | "REASSESS";
+  title: string;
+  why: string;
+  action: string;
+  deliverable?: string;
+  proof: string;
+  resources: { title: string; url?: string; type: string }[];
+  estimatedDuration: string;
+  priority: "critical" | "high" | "medium";
+  completionCriteria: string;
+}
+
+export interface CanonicalAnalysis {
+  candidate: {
+    fullName: string;
+    headline: string;
+    summary: string;
+    strengths: { name: string; evidence: string }[];
+    currentPositionSummary: string;
+    evidence: { type: string; description: string; urlOrSnippet?: string }[];
+  };
+
+  destination: {
+    role: string;
+    industry: string;
+    company?: string;
+    description: string;
+  };
+
+  readiness: {
+    score: number;
+    benchmarkLabel: "Strong Base" | "Early Transition" | "Progression Needed" | "Close to Destination";
+    explanation: string;
+  };
+
+  biggestInsight: {
+    headline: string;
+    detail: string;
+  };
+
+  whatNotToDo: {
+    actionToAvoid: string;
+    reason: string;
+  }[];
+
+  market: {
+    summary: string;
+    requirements: {
+      skill: string;
+      frequency: "High" | "Medium-High" | "Medium";
+      evidenceNote: string;
+    }[];
+    trends: {
+      trend: string;
+      trajectory: "Growing" | "Strong" | "Emerging";
+      details: string;
+    }[];
+    tools: string[];
+    responsibilities: string[];
+    evidenceCountNote: string;
+    sources: SourceReference[];
+  };
+
+  trajectories: {
+    summary: string;
+    stages: TrajectoryStageItem[];
+    routes: CareerRouteItem[];
+    closestRoute: CareerRouteItem;
+    patterns: TrajectoryPatternItem[];
+    professionals: ProfessionalProfile[];
+    insufficientEvidence?: boolean;
+    sources: SourceReference[];
+  };
+
+  comparison: {
+    items: JourneyComparisonItem[];
+    demonstrated: string[];
+    partial: string[];
+    missing: string[];
+    unknown: string[];
+  };
+
+  priorities: {
+    id: string;
+    title: string;
+    type: "skill" | "experience" | "evidence";
+    currentSignal: string;
+    destinationRequirement: string;
+    difference: string;
+    action: string;
+    proof: string;
+    resourceName?: string;
+  }[];
+
+  gaps: SmartGapItem[];
+
+  pathway: {
+    stages: {
+      LEARN: ActionItem[];
+      BUILD: ActionItem[];
+      DEMONSTRATE: ActionItem[];
+      REASSESS: ActionItem[];
+    };
+    learn: ActionItem[];
+    build: ActionItem[];
+    demonstrate: ActionItem[];
+    reassess: ActionItem[];
+    milestones: ActionItem[];
+    ninetyDayRoute: {
+      days1to30: string[];
+      days31to60: string[];
+      days61to90: string[];
+    };
+  };
+
+  resources: {
+    learning: { title: string; url?: string; description: string; forGap: string }[];
+    building: { title: string; deliverable: string; forGap: string }[];
+    evidence: { title: string; proofFormat: string; forGap: string }[];
+    exploration: { companyOrRole: string; note: string }[];
+  };
+
+  sources: {
+    marketSources: SourceReference[];
+    careerSources: SourceReference[];
+    learningSources: SourceReference[];
+    totalCount: number;
+    researchBasis: {
+      marketCount: number;
+      trajectoryCount: number;
+      learningCount: number;
+      evidenceQuality: "Strong evidence" | "Directional evidence" | "Limited evidence";
+    };
+  };
+
+  meta: {
+    researchTimestamp: string;
+    confidence: string;
+  };
+}
+
+// ==========================================
+// 8. Overall Analysis Entity
 // ==========================================
 
 export type AnalysisStatus =
@@ -368,11 +572,12 @@ export interface AnalysisRecord {
   gap_analysis: GapAnalysisOutput;
   pathway: PathwayOutput;
   analysis_status: AnalysisStatus;
+  canonical_analysis?: CanonicalAnalysis;
   error_message?: string;
 }
 
 // ==========================================
-// 8. Chat Types
+// 9. Chat Types
 // ==========================================
 
 export interface ChatMessage {

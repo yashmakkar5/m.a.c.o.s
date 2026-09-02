@@ -8,11 +8,41 @@ import {
   MarketIntelligenceOutput,
   PathwayOutput,
   SkillsDiscoveryOutput,
+  CanonicalAnalysis,
 } from "@/types";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
-// Server-side in-memory cache for graceful fallback when Supabase is unconfigured or unreachable
+// Server-side in-memory cache for fast access
 const memoryStore = new Map<string, AnalysisRecord>();
+
+// Ensure local persistence directory exists
+const DATA_DIR = path.join(process.cwd(), ".data", "analyses");
+function saveToDisk(record: AnalysisRecord) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    const filePath = path.join(DATA_DIR, `${record.id}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(record, null, 2), "utf-8");
+  } catch (err) {
+    console.warn("[M.A.C.O.S. Local Storage] Disk write warning:", err);
+  }
+}
+
+function readFromDisk(id: string): AnalysisRecord | null {
+  try {
+    const filePath = path.join(DATA_DIR, `${id}.json`);
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, "utf-8");
+      return JSON.parse(raw) as AnalysisRecord;
+    }
+  } catch (err) {
+    console.warn("[M.A.C.O.S. Local Storage] Disk read warning:", err);
+  }
+  return null;
+}
 
 export interface CreateAnalysisInput {
   id?: string;
@@ -28,6 +58,7 @@ export interface CreateAnalysisInput {
   trajectory_analysis?: CareerTrajectoryOutput;
   gap_analysis?: GapAnalysisOutput;
   pathway?: PathwayOutput;
+  canonical_analysis?: CanonicalAnalysis;
   error_message?: string;
 }
 
@@ -55,6 +86,7 @@ export async function createAnalysisRecord(
     gap_analysis: initial.gap_analysis || ({} as GapAnalysisOutput),
     pathway: initial.pathway || ({} as PathwayOutput),
     analysis_status: initial.analysis_status,
+    canonical_analysis: initial.canonical_analysis,
     error_message: initial.error_message,
   };
 
@@ -64,6 +96,7 @@ export async function createAnalysisRecord(
       const { error } = await supabase.from("analyses").insert({
         id: record.id,
         created_at: record.created_at,
+        status: record.analysis_status,
         resume_file_name: record.resume_file_name,
         resume_text: record.resume_text,
         target_role: record.target_role,
@@ -75,26 +108,26 @@ export async function createAnalysisRecord(
         trajectory_analysis: record.trajectory_analysis,
         gap_analysis: record.gap_analysis,
         pathway: record.pathway,
-        analysis_status: record.analysis_status,
         error_message: record.error_message || null,
       });
 
       if (error) {
         console.warn(
-          `[M.A.C.O.S. Database] Supabase insert warning: ${error.message}. Falling back to in-memory store.`
+          `[M.A.C.O.S. Database] Supabase insert warning: ${error.message}. Local persistence active.`
         );
       }
     } catch (err) {
       console.warn(
-        `[M.A.C.O.S. Database] Supabase connection failed: ${
+        `[M.A.C.O.S. Database] Supabase connection error: ${
           err instanceof Error ? err.message : String(err)
-        }. Falling back to in-memory store.`
+        }. Local persistence active.`
       );
     }
   }
 
-  // Always store in memory cache for immediate fast retrieval & resilience
+  // Store in memory cache & write to local disk
   memoryStore.set(record.id, record);
+  saveToDisk(record);
   return record;
 }
 
@@ -105,18 +138,19 @@ export async function updateAnalysisRecord(
   id: string,
   updates: Partial<AnalysisRecord>
 ): Promise<AnalysisRecord | null> {
-  const existing = memoryStore.get(id);
+  const existing = memoryStore.get(id) || readFromDisk(id);
   const updated: AnalysisRecord = existing
     ? { ...existing, ...updates }
     : (updates as AnalysisRecord);
 
   memoryStore.set(id, updated);
+  saveToDisk(updated);
 
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
       const payload: Record<string, unknown> = {};
-      if (updates.analysis_status !== undefined) payload.analysis_status = updates.analysis_status;
+      if (updates.analysis_status !== undefined) payload.status = updates.analysis_status;
       if (updates.candidate_profile !== undefined) payload.candidate_profile = updates.candidate_profile;
       if (updates.skills_analysis !== undefined) payload.skills_analysis = updates.skills_analysis;
       if (updates.market_analysis !== undefined) payload.market_analysis = updates.market_analysis;
@@ -142,11 +176,19 @@ export async function updateAnalysisRecord(
  * Retrieves an analysis record by ID.
  */
 export async function getAnalysisRecordById(id: string): Promise<AnalysisRecord | null> {
-  // Check memory store first
+  // 1. Check memory store first
   if (memoryStore.has(id)) {
     return memoryStore.get(id) || null;
   }
 
+  // 2. Check local disk persistence
+  const diskRecord = readFromDisk(id);
+  if (diskRecord) {
+    memoryStore.set(id, diskRecord);
+    return diskRecord;
+  }
+
+  // 3. Check Supabase
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -157,8 +199,12 @@ export async function getAnalysisRecordById(id: string): Promise<AnalysisRecord 
         .single();
 
       if (!error && data) {
-        const record = data as AnalysisRecord;
+        const record: AnalysisRecord = {
+          ...data,
+          analysis_status: data.status || data.analysis_status || "completed",
+        };
         memoryStore.set(id, record);
+        saveToDisk(record);
         return record;
       }
     } catch (err) {

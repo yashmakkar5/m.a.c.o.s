@@ -9,6 +9,7 @@ import {
   updateAnalysisRecord,
 } from "@/lib/supabase/analysisRepository";
 import { AnalysisRecord, AnalysisStatus } from "@/types";
+import { buildCanonicalAnalysis } from "@/lib/analysis/canonicalNormalizer";
 
 export interface OrchestrationInput {
   analysisId?: string;
@@ -133,9 +134,23 @@ export async function orchestrateCareerAnalysis({
       gapAnalysis,
     });
 
-    // 7. Complete & Finalize
+    // 7. Synthesize Canonical Career Intelligence Analysis
+    const canonicalAnalysis = buildCanonicalAnalysis({
+      candidateProfile,
+      skillsAnalysis,
+      marketAnalysis,
+      trajectoryAnalysis,
+      gapAnalysis,
+      pathway,
+      targetRole,
+      targetIndustry,
+      targetCompany,
+    });
+
+    // 8. Complete & Finalize
     const completedRecord = await updateAnalysisRecord(recordId, {
       pathway,
+      canonical_analysis: canonicalAnalysis,
       analysis_status: "completed",
     });
 

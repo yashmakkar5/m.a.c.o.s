@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAnalysisRecordById } from "@/lib/supabase/analysisRepository";
 import { generateChatResponse } from "@/lib/ai/geminiClient";
 
+export const maxDuration = 60; // 60 seconds for Vercel functions
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

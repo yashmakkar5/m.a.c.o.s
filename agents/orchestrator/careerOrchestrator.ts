@@ -99,6 +99,7 @@ export async function orchestrateCareerAnalysis({
       runCareerTrajectoryAgent({
         targetRole,
         targetIndustry,
+        candidateProfile,
       }),
     ]);
 

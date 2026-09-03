@@ -6,66 +6,106 @@ import {
 } from "@/types";
 
 const SKILLS_DISCOVERY_SYSTEM_PROMPT = `
-You are the Skills Discovery Agent for M.A.C.O.S. (My Adaptive Career Orchestration System).
-Your purpose is to rigorously evaluate what a candidate can ACTUALLY DEMONSTRATE versus what is merely claimed without evidence.
+You are the elite Skills Discovery Agent for M.A.C.O.S. (My Adaptive Career Orchestration System).
+Your purpose is to deeply understand the candidate's current state and evaluate what the candidate can ACTUALLY PROVE versus what is merely claimed without evidence.
 
-STRICT PRINCIPLES:
-1. "Demonstrated Skills" MUST be supported by concrete evidence from their projects, employment, or tangible contributions (e.g. "Built REST API in Next.js", "Reduced page load time by 32%").
-2. "Uncertain Skills" are skills listed in a buzzword list or resume header without direct project or work evidence. Explain clearly why it is uncertain (e.g., "Listed in skills section but no project or work achievement demonstrates production use").
-3. Assign confidence levels strictly:
-   - "high": Clear tangible project, metrics, or production experience.
-   - "medium": Used in academic/internship context or smaller hobby project.
-   - "low": Mentioned briefly or without clear verification.
-4. "missingInformation": Explicitly state what key evidence or metrics are lacking for their claimed competencies.
-5. Provide an empowering, honest "coreStrengthsSummary" highlighting their genuine demonstrated capabilities without pedigree bias.
+CORE PRINCIPLE:
+Understand the decisive difference between possessing a skill and proving that skill.
+Never reduce a candidate to buzzwords. Attach concrete, verifiable evidence to every capability.
+
+STRICT CATEGORIZATION RULES:
+Separate all extracted capabilities into four distinct categories:
+1. DEMONSTRATED ("demonstrated"):
+   - The candidate has concrete evidence from projects, production code, internships, metrics, or tangible outcomes.
+   - ALWAYS attach explicit evidence: e.g., "Python — demonstrated through 2 academic projects and open-source CLI with 1,200 stars."
+   - E.g., "Leadership — demonstrated by leading sprint planning for 4 engineers."
+
+2. MENTIONED ("mentioned"):
+   - The candidate claims the skill (in a skills list, header, or summary) but provides limited or no project context/metrics.
+   - E.g., "Docker — mentioned in skills list without containerization project details."
+
+3. MISSING ("missing"):
+   - High-importance target destination competencies that have zero evidence or mention in the candidate's profile.
+   - E.g., "Product Discovery Telemetry — missing from current profile."
+
+4. UNKNOWN ("unknown"):
+   - The resume or profile does not provide enough information to verify the candidate's actual depth or execution context.
+
+DEEP EXTRACTION SCOPE:
+Examine:
+- Education (degree, specialization, institution)
+- Current & previous roles, internships, responsibilities
+- Projects, technical architecture, and measurable outcomes
+- Technical skills, business skills, tools & technologies
+- Soft skills, leadership, communication evidence, domain exposure
+
+CRITICAL TRUST RULE:
+NEVER invent or assume experience. Only reflect what is genuinely evidenced.
+Return structured output adhering strictly to the SkillsDiscoveryOutput schema.
 `.trim();
 
 export async function runSkillsDiscoveryAgent(
   profile: CandidateProfile
 ): Promise<SkillsDiscoveryOutput> {
   const prompt = `
-Analyze the demonstrated capabilities of the following candidate profile:
+Perform a deep, evidence-backed skills discovery evaluation for the candidate targeting "${profile.targetRole}":
 
 CANDIDATE TARGET:
-- Role: ${profile.targetRole}
-- Industry: ${profile.targetIndustry || "Technology"}
+- Destination Role: ${profile.targetRole}
+- Destination Industry: ${profile.targetIndustry || "Technology"}
+- Destination Company: ${profile.targetCompany || "General Market"}
 
-STATED SKILLS & TECHNOLOGIES:
-- Skills: ${profile.skills.join(", ") || "None listed explicitly"}
-- Technologies: ${profile.technologies.join(", ") || "None listed explicitly"}
+CANDIDATE SUMMARY & HEADLINE:
+- Full Name: ${profile.fullName}
+- Headline: ${profile.headline || "Practitioner"}
+- Summary: ${profile.summary || "No summary provided."}
 
-WORK EXPERIENCE:
+EDUCATION & SPECIALIZATION:
+${
+  profile.education.length > 0
+    ? profile.education
+        .map((ed) => `- ${ed.degree} from ${ed.institution} (${ed.year || "Completed"})`)
+        .join("\n")
+    : "- No formal education listed."
+}
+
+WORK EXPERIENCE & RESPONSIBILITIES:
 ${
   profile.experience.length > 0
     ? profile.experience
         .map(
           (e) =>
-            `- ${e.role} at ${e.company} (${e.duration}): ${e.description}\n  Skills used: ${e.skillsUsed.join(", ")}\n  Achievements: ${e.achievements.join("; ")}`
+            `- Role: ${e.role} at ${e.company} (${e.duration})\n  Description: ${e.description}\n  Skills used: ${e.skillsUsed.join(", ")}\n  Achievements & Outcomes: ${e.achievements.join("; ") || "None specified"}`
         )
-        .join("\n")
-    : "No formal work experience listed."
+        .join("\n\n")
+    : "- No formal work experience listed."
 }
 
-PROJECTS & EVIDENCE:
+PROJECTS & EVIDENCE ARTIFACTS:
 ${
   profile.projects.length > 0
     ? profile.projects
         .map(
           (p) =>
-            `- ${p.title}: ${p.description}\n  Tech: ${p.technologies.join(", ")}\n  Evidence/Link: ${p.link || p.evidence || "No link"}`
+            `- Project: ${p.title}\n  Description: ${p.description}\n  Technologies: ${p.technologies.join(", ")}\n  Evidence/Artifact: ${p.link || p.evidence || "No public link"}`
         )
-        .join("\n")
-    : "No projects listed."
+        .join("\n\n")
+    : "- No individual projects listed."
 }
 
-EDUCATION & CERTIFICATIONS:
-- Education: ${profile.education.map((ed) => `${ed.degree} from ${ed.institution} (${ed.year})`).join("; ") || "Not specified"}
-- Certifications: ${profile.certifications.map((c) => `${c.name} (${c.issuer})`).join("; ") || "None"}
+STATED SKILLS, TOOLS & CERTIFICATIONS:
+- Technical Skills: ${profile.skills.join(", ") || "None listed"}
+- Tools & Technologies: ${profile.technologies.join(", ") || "None listed"}
+- Certifications: ${profile.certifications.map((c) => `${c.name} (${c.issuer})`).join("; ") || "None listed"}
 
-DEMONSTRATED CAPABILITIES ALREADY NOTED:
-${profile.demonstratedCapabilities.join("\n") || "None extracted"}
-
-Evaluate this profile and generate the structured SkillsDiscoveryOutput adhering strictly to the schema.
+INSTRUCTIONS:
+1. Rigorously evaluate and categorize each skill into:
+   - "demonstratedList" (must include concrete evidence: e.g. "React — demonstrated by building high-concurrency checkout flow serving 250k daily active users")
+   - "mentionedList" (skills listed without project depth)
+   - "missingList" (critical target competencies lacking evidence)
+   - "unknownList" (skills with ambiguous depth)
+2. Populate "demonstratedSkills" and "uncertainSkills" for full system compatibility.
+3. Write an empowering, honest "coreStrengthsSummary" highlighting the candidate's genuine demonstrated capabilities without pedigree bias.
 `.trim();
 
   return await generateStructuredJson<SkillsDiscoveryOutput>({

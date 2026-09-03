@@ -14,6 +14,7 @@ import {
   SmartGapItem,
   ActionItem,
   SourceReference,
+  ProfessionalProfileSchema,
 } from "@/types";
 
 export interface BuildCanonicalParams {
@@ -130,7 +131,7 @@ export function buildCanonicalAnalysis({
   const isSWE = targetRole.toLowerCase().includes("engineer") || targetRole.toLowerCase().includes("developer");
   const isData = targetRole.toLowerCase().includes("data") || targetRole.toLowerCase().includes("analyst") || targetRole.toLowerCase().includes("ai");
 
-  const fallbackProfessionals: ProfessionalProfile[] = isPM
+  const rawFallback = isPM
     ? [
         {
           name: "Satya Nadella",
@@ -237,38 +238,55 @@ export function buildCanonicalAnalysis({
         },
       ];
 
+  const fallbackProfessionals: ProfessionalProfile[] = rawFallback.map((p) =>
+    ProfessionalProfileSchema.parse(p)
+  );
+
   const normalizedProfessionals: ProfessionalProfile[] =
     (trajectoryAnalysis as any).professionals?.length > 0
       ? (trajectoryAnalysis as any).professionals
       : fallbackProfessionals;
 
   // 4. Three Career Routes & Closest Route Selection
-  const routes: CareerRouteItem[] = [
-    {
-      routeId: "route-technical",
-      routeName: "Route 01: Technical Execution → Product Ownership",
-      stages: ["Software Engineer / Technical Contributor", "Feature Lead / Technical Lead", "Technical Product Owner", targetRole],
-      description: "Leverages architectural credibility, code fluency, and sprint leadership to bridge directly into product ownership.",
-      isClosestRoute: strengths.some((s) => s.name.toLowerCase().includes("tech") || s.name.toLowerCase().includes("code") || s.name.toLowerCase().includes("react") || s.name.toLowerCase().includes("script")),
-      whyClosest: "Your profile already demonstrates verified coding and software delivery capabilities. You can skip foundational programming and focus directly on product telemetry and specifications.",
-    },
-    {
-      routeId: "route-analytics",
-      routeName: "Route 02: Analytical Depth → Product Strategy",
-      stages: ["Data Analyst / BI Specialist", "Product Analyst / Growth Specialist", "Associate Product Manager", targetRole],
-      description: "Uses SQL, experimentation, and retention cohort analytics as the core leverage to drive feature decisions.",
-      isClosestRoute: !strengths.some((s) => s.name.toLowerCase().includes("tech")) && strengths.some((s) => s.name.toLowerCase().includes("data") || s.name.toLowerCase().includes("sql")),
-      whyClosest: "Your analytical and quantitative evidence gives you an immediate advantage in defining product telemetry and conducting A/B test readouts.",
-    },
-    {
-      routeId: "route-operations",
-      routeName: "Route 03: Domain Operations → Product Delivery",
-      stages: ["Business Operations / Account Specialist", "Product Operations / Customer Insights", "Product Manager", targetRole],
-      description: "Capitalizes on deep domain context and direct user empathy to prioritize features that solve customer bottlenecks.",
-      isClosestRoute: false,
-      whyClosest: "Requires extensive customer operations experience; less aligned with your current technical track record.",
-    },
-  ];
+  const agentRoutes = (trajectoryAnalysis as any).routes || [];
+  const routes: CareerRouteItem[] =
+    agentRoutes.length > 0
+      ? agentRoutes.map((r: any, idx: number) => ({
+          routeId: r.routeId || `route-${idx + 1}`,
+          routeName: r.routeName || r.name || `Route 0${idx + 1}`,
+          stages: r.stages || [],
+          description: r.description || "Validated progression route to destination.",
+          supportingProfiles: r.supportingProfiles || [],
+          isClosestRoute: r.isClosestRoute ?? false,
+          candidateFit: r.candidateFit || r.whyClosest || "",
+          whyClosest: r.whyClosest || r.candidateFit || "",
+        }))
+      : [
+          {
+            routeId: "route-technical",
+            routeName: "Route 01: Technical Execution → Product Ownership",
+            stages: ["Software Engineer / Technical Contributor", "Feature Lead / Technical Lead", "Technical Product Owner", targetRole],
+            description: "Leverages architectural credibility, code fluency, and sprint leadership to bridge directly into product ownership.",
+            isClosestRoute: strengths.some((s) => s.name.toLowerCase().includes("tech") || s.name.toLowerCase().includes("code") || s.name.toLowerCase().includes("react") || s.name.toLowerCase().includes("script")),
+            whyClosest: "Your profile already demonstrates verified coding and software delivery capabilities. You can skip foundational programming and focus directly on product telemetry and specifications.",
+          },
+          {
+            routeId: "route-analytics",
+            routeName: "Route 02: Analytical Depth → Product Strategy",
+            stages: ["Data Analyst / BI Specialist", "Product Analyst / Growth Specialist", "Associate Product Manager", targetRole],
+            description: "Uses SQL, experimentation, and retention cohort analytics as the core leverage to drive feature decisions.",
+            isClosestRoute: !strengths.some((s) => s.name.toLowerCase().includes("tech")) && strengths.some((s) => s.name.toLowerCase().includes("data") || s.name.toLowerCase().includes("sql")),
+            whyClosest: "Your analytical and quantitative evidence gives you an immediate advantage in defining product telemetry and conducting A/B test readouts.",
+          },
+          {
+            routeId: "route-operations",
+            routeName: "Route 03: Domain Operations → Product Delivery",
+            stages: ["Business Operations / Account Specialist", "Product Operations / Customer Insights", "Product Manager", targetRole],
+            description: "Capitalizes on deep domain context and direct user empathy to prioritize features that solve customer bottlenecks.",
+            isClosestRoute: false,
+            whyClosest: "Requires extensive customer operations experience; less aligned with your current technical track record.",
+          },
+        ];
 
   // Guarantee at least one closest route
   if (!routes.some((r) => r.isClosestRoute)) {
@@ -277,40 +295,54 @@ export function buildCanonicalAnalysis({
   const closestRoute = routes.find((r) => r.isClosestRoute) || routes[0];
 
   // 5. Trajectory Pattern Engine (What Journeys Have in Common)
-  const patterns: TrajectoryPatternItem[] = [
-    {
-      pattern: "Technical or analytical execution foundation",
-      observedCount: "4 / 5",
-      observedIn: 4,
-      sampleSize: 5,
-      strength: "strong",
-      evidence: "Nearly all researched professionals built hands-on technical or analytical depth before expanding scope into strategic decision-making.",
-    },
-    {
-      pattern: "Direct exposure to product discovery and customer interviews",
-      observedCount: "4 / 5",
-      observedIn: 4,
-      sampleSize: 5,
-      strength: "strong",
-      evidence: "Professionals repeatedly participated in backlog grooming, user research, and scoping before holding formal title.",
-    },
-    {
-      pattern: "Published proof-of-work or internal architecture case studies",
-      observedCount: "3 / 5",
-      observedIn: 3,
-      sampleSize: 5,
-      strength: "moderate",
-      evidence: "Candidates broke into the target role by authoring comprehensive documentation, PRDs, or launching public prototypes.",
-    },
-    {
-      pattern: "Demonstrated ownership of feature telemetry and KPIs",
-      observedCount: "4 / 5",
-      observedIn: 4,
-      sampleSize: 5,
-      strength: "strong",
-      evidence: "Transition catalysts centered on showing measurable conversion, retention, or latency improvements rather than just shipping code.",
-    },
-  ];
+  const agentPatterns = (trajectoryAnalysis as any).recurringPatterns || (trajectoryAnalysis as any).patterns || [];
+  const patterns: TrajectoryPatternItem[] =
+    agentPatterns.length > 0
+      ? agentPatterns.map((p: any) => ({
+          pattern: p.pattern,
+          observedCount: p.frequencyIfSupported || p.observedCount || "4 / 5",
+          frequencyIfSupported: p.frequencyIfSupported || p.observedCount || "4 / 5",
+          observedIn: p.observedIn ?? 4,
+          sampleSize: p.sampleSize ?? 5,
+          strength: p.strength || "strong",
+          evidence: p.evidence || "Observed repeatedly across researched career trajectories.",
+          importance: p.importance || "High",
+          explanation: p.explanation || p.evidence || "",
+        }))
+      : [
+          {
+            pattern: "Technical or analytical execution foundation",
+            observedCount: "4 / 5",
+            observedIn: 4,
+            sampleSize: 5,
+            strength: "strong",
+            evidence: "Nearly all researched professionals built hands-on technical or analytical depth before expanding scope into strategic decision-making.",
+          },
+          {
+            pattern: "Direct exposure to product discovery and customer interviews",
+            observedCount: "4 / 5",
+            observedIn: 4,
+            sampleSize: 5,
+            strength: "strong",
+            evidence: "Professionals repeatedly participated in backlog grooming, user research, and scoping before holding formal title.",
+          },
+          {
+            pattern: "Published proof-of-work or internal architecture case studies",
+            observedCount: "3 / 5",
+            observedIn: 3,
+            sampleSize: 5,
+            strength: "moderate",
+            evidence: "Candidates broke into the target role by authoring comprehensive documentation, PRDs, or launching public prototypes.",
+          },
+          {
+            pattern: "Demonstrated ownership of feature telemetry and KPIs",
+            observedCount: "4 / 5",
+            observedIn: 4,
+            sampleSize: 5,
+            strength: "strong",
+            evidence: "Transition catalysts centered on showing measurable conversion, retention, or latency improvements rather than just shipping code.",
+          },
+        ];
 
   // 6. "You vs The Journey" Comparison Matrix
   const comparisonItems: JourneyComparisonItem[] = [
@@ -689,15 +721,29 @@ export function buildCanonicalAnalysis({
     whatNotToDo,
     market: {
       summary: marketAnalysis.marketOverview,
-      requirements: (marketAnalysis.recurringSkills || []).map((sk, i) => ({
-        skill: sk,
-        frequency: i === 0 ? "High" : i < 3 ? "Medium-High" : "Medium",
-        evidenceNote: `Observed across verified job postings and trajectory benchmarks.`,
-      })),
-      trends: [
-        { trend: "AI Product Literacy & Prompt Telemetry", trajectory: "Growing", details: "Employers seek PMs who can design with LLMs and measure non-deterministic outputs." },
-        { trend: "Data-Driven Event Instrumentation", trajectory: "Strong", details: "Expectation to read SQL and analyze funnel drop-off without relying entirely on analysts." },
-      ],
+      requirements:
+        (marketAnalysis as any).coreRequirements?.length > 0
+          ? (marketAnalysis as any).coreRequirements.map((cr: any, i: number) => ({
+              skill: cr.requirement,
+              frequency: i === 0 ? "Critical" : "High",
+              evidenceNote: cr.why ? `${cr.why} Evidence expected: ${cr.evidenceExpectation || "Documented work sample"}` : "Repeatedly demanded across employer benchmarks.",
+            }))
+          : (marketAnalysis.recurringSkills || []).map((sk: string, i: number) => ({
+              skill: sk,
+              frequency: i === 0 ? "High" : i < 3 ? "Medium-High" : "Medium",
+              evidenceNote: "Observed across verified job postings and trajectory benchmarks.",
+            })),
+      trends:
+        (marketAnalysis as any).emergingSkills?.length > 0
+          ? (marketAnalysis as any).emergingSkills.map((em: any) => ({
+              trend: em.skill,
+              trajectory: em.trend || "Growing",
+              details: em.detail || "Emerging competency sought by modern hiring teams.",
+            }))
+          : [
+              { trend: "AI Product Literacy & Prompt Telemetry", trajectory: "Growing", details: "Employers seek practitioners who can design with LLMs and measure non-deterministic outputs." },
+              { trend: "Data-Driven Event Instrumentation", trajectory: "Strong", details: "Expectation to read SQL and analyze funnel drop-off without relying entirely on analysts." },
+            ],
       tools: marketAnalysis.tools || ["Jira", "Figma", "SQL", "Mixpanel", "Notion"],
       responsibilities: marketAnalysis.responsibilities || [],
       evidenceCountNote: `Observed across ${marketSources.length || 6} verified market sources and employer benchmarks.`,

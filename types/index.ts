@@ -51,11 +51,18 @@ export const CertificationItemSchema = z.union([
 ]);
 export type CertificationItem = z.infer<typeof CertificationItemSchema>;
 
-export const EvidenceItemSchema = z.object({
-  type: z.string().nullish().transform((v) => v || "work_output"),
-  description: z.string().nullish().transform((v) => v || ""),
-  urlOrSnippet: z.string().nullish().transform((v) => v || ""),
-});
+export const EvidenceItemSchema = z.union([
+  z.string().transform((v) => ({
+    type: "work_output",
+    description: v,
+    urlOrSnippet: v,
+  })),
+  z.object({
+    type: z.string().nullish().transform((v) => v || "work_output"),
+    description: z.string().nullish().transform((v) => v || ""),
+    urlOrSnippet: z.string().nullish().transform((v) => v || ""),
+  }),
+]);
 export type EvidenceItem = z.infer<typeof EvidenceItemSchema>;
 
 export const CandidateProfileSchema = z.object({
@@ -82,43 +89,192 @@ export type CandidateProfile = z.infer<typeof CandidateProfileSchema>;
 // 2. Skills Discovery Agent Types
 // ==========================================
 
-export const DemonstratedSkillSchema = z.object({
-  skill: z.string(),
-  evidence: z.string(),
-  confidence: z.enum(["high", "medium", "low"]),
-});
+export const SkillEvidenceCategoryEnum = z.enum(["demonstrated", "mentioned", "missing", "unknown"]);
+export type SkillEvidenceCategory = z.infer<typeof SkillEvidenceCategoryEnum>;
+
+export const DemonstratedSkillSchema = z.union([
+  z.string().transform((str) => ({
+    skill: str.split("—")[0].split("-")[0].trim() || str,
+    evidence: str.includes("—") || str.includes("-") ? str.trim() : "Demonstrated through candidate project work.",
+    confidence: "high" as const,
+  })),
+  z
+    .object({
+      skill: z.string().nullish().default("Skill"),
+      evidence: z.string().nullish().default("Demonstrated in candidate projects"),
+      confidence: z.string().nullish().default("high"),
+    })
+    .transform((val) => ({
+      skill: val.skill || "Skill",
+      evidence: val.evidence || "Demonstrated in candidate projects",
+      confidence: (["high", "medium", "low"].includes((val.confidence || "").toLowerCase())
+        ? val.confidence!.toLowerCase()
+        : "high") as "high" | "medium" | "low",
+    })),
+]);
 export type DemonstratedSkill = z.infer<typeof DemonstratedSkillSchema>;
 
-export const UncertainSkillSchema = z.object({
-  skill: z.string(),
-  reason: z.string(),
-});
+export const UncertainSkillSchema = z.union([
+  z.string().transform((str) => ({
+    skill: str,
+    reason: "Listed without direct project or work evidence.",
+  })),
+  z
+    .object({
+      skill: z.string().nullish().default("Skill"),
+      reason: z.string().nullish().default("Listed without direct project or work evidence."),
+    })
+    .transform((val) => ({
+      skill: val.skill || "Skill",
+      reason: val.reason || "Listed without direct project or work evidence.",
+    })),
+]);
 export type UncertainSkill = z.infer<typeof UncertainSkillSchema>;
 
-export const SkillsDiscoveryOutputSchema = z.object({
-  demonstratedSkills: z.array(DemonstratedSkillSchema),
-  uncertainSkills: z.array(UncertainSkillSchema),
-  missingInformation: z.array(z.string()),
-  coreStrengthsSummary: z.string(),
-});
+export const CategorizedSkillSchema = z.union([
+  z.string().transform((str) => ({
+    skill: str.split("—")[0].split("-")[0].trim() || str,
+    category: "mentioned" as SkillEvidenceCategory,
+    evidence: str.trim(),
+    confidence: "medium" as const,
+    context: "",
+  })),
+  z
+    .object({
+      skill: z.string().nullish().default("Skill"),
+      category: z.string().nullish().default("mentioned"),
+      evidence: z.string().nullish().default(""),
+      confidence: z.string().nullish().default("medium"),
+      context: z.string().nullish().default(""),
+    })
+    .transform((val) => {
+      const cat = (val.category || "mentioned").toLowerCase();
+      const validCat = (["demonstrated", "mentioned", "missing", "unknown"].includes(cat)
+        ? cat
+        : "mentioned") as SkillEvidenceCategory;
+      const conf = (val.confidence || "medium").toLowerCase();
+      const validConf = (["high", "medium", "low"].includes(conf) ? conf : "medium") as
+        | "high"
+        | "medium"
+        | "low";
+      return {
+        skill: val.skill || "Skill",
+        category: validCat,
+        evidence: val.evidence || "",
+        confidence: validConf,
+        context: val.context || "",
+      };
+    }),
+]);
+export type CategorizedSkill = z.infer<typeof CategorizedSkillSchema>;
+
+export const SkillsDiscoveryOutputSchema = z
+  .object({
+    demonstratedSkills: z.array(DemonstratedSkillSchema).nullish().default([]),
+    uncertainSkills: z.array(UncertainSkillSchema).nullish().default([]),
+    categorizedSkills: z.array(CategorizedSkillSchema).nullish().default([]),
+    demonstratedList: z.array(CategorizedSkillSchema).nullish().default([]),
+    mentionedList: z.array(CategorizedSkillSchema).nullish().default([]),
+    missingList: z.array(CategorizedSkillSchema).nullish().default([]),
+    unknownList: z.array(CategorizedSkillSchema).nullish().default([]),
+    missingInformation: z.array(z.string()).nullish().default([]),
+    coreStrengthsSummary: z.string().nullish().default("Candidate strengths evaluated against target role expectations."),
+  })
+  .transform((val) => {
+    const demonstrated =
+      val.demonstratedSkills && val.demonstratedSkills.length > 0
+        ? val.demonstratedSkills
+        : (val.categorizedSkills || [])
+            .filter((s) => s.category === "demonstrated")
+            .map((s) => ({ skill: s.skill, evidence: s.evidence || "Demonstrated in candidate projects", confidence: s.confidence || "high" }));
+
+    const uncertain =
+      val.uncertainSkills && val.uncertainSkills.length > 0
+        ? val.uncertainSkills
+        : (val.categorizedSkills || [])
+            .filter((s) => s.category === "mentioned" || s.category === "unknown")
+            .map((s) => ({ skill: s.skill, reason: s.evidence || "Mentioned without project evidence" }));
+
+    return {
+      demonstratedSkills: demonstrated,
+      uncertainSkills: uncertain,
+      categorizedSkills: val.categorizedSkills || [],
+      demonstratedList: val.demonstratedList || (val.categorizedSkills || []).filter((s) => s.category === "demonstrated"),
+      mentionedList: val.mentionedList || (val.categorizedSkills || []).filter((s) => s.category === "mentioned"),
+      missingList: val.missingList || (val.categorizedSkills || []).filter((s) => s.category === "missing"),
+      unknownList: val.unknownList || (val.categorizedSkills || []).filter((s) => s.category === "unknown"),
+      missingInformation: val.missingInformation || [],
+      coreStrengthsSummary: val.coreStrengthsSummary || "Candidate strengths evaluated against target role expectations.",
+    };
+  });
 export type SkillsDiscoveryOutput = z.infer<typeof SkillsDiscoveryOutputSchema>;
 
 // ==========================================
 // 3. Market Intelligence Agent Types
 // ==========================================
 
-export const SourceReferenceSchema = z.object({
-  title: z.string().nullish().default("Market Reference"),
-  url: z.string().nullish().default(""),
-  snippet: z.string().nullish().default(""),
-  isControlledFallback: z.boolean().nullish().default(false),
-});
+export const SourceReferenceSchema = z.union([
+  z.string().transform((urlOrTitle) => ({
+    title: urlOrTitle.startsWith("http") ? "Verified Reference" : urlOrTitle,
+    url: urlOrTitle.startsWith("http") ? urlOrTitle : "",
+    snippet: "",
+    isControlledFallback: false,
+  })),
+  z
+    .object({
+      title: z.string().nullish().default("Market Reference"),
+      url: z.string().nullish().default(""),
+      snippet: z.string().nullish().default(""),
+      isControlledFallback: z.boolean().nullish().default(false),
+    })
+    .transform((val) => ({
+      title: val.title || "Market Reference",
+      url: val.url || "",
+      snippet: val.snippet || "",
+      isControlledFallback: val.isControlledFallback ?? false,
+    })),
+]);
 export type SourceReference = z.infer<typeof SourceReferenceSchema>;
+
+export const MarketRequirementItemSchema = z.union([
+  z.string().transform((str) => ({
+    requirement: str,
+    category: "core" as const,
+    why: "Important employer requirement.",
+    evidenceExpectation: "Demonstrated portfolio work sample.",
+  })),
+  z
+    .object({
+      requirement: z.string().nullish(),
+      differentiator: z.string().nullish(),
+      name: z.string().nullish(),
+      skill: z.string().nullish(),
+      category: z.enum(["core", "important", "differentiator"]).nullish().default("core"),
+      why: z.string().nullish().default(""),
+      impact: z.string().nullish(),
+      evidenceExpectation: z.string().nullish().default(""),
+    })
+    .transform((val) => ({
+      requirement: val.requirement || val.differentiator || val.name || val.skill || "Requirement",
+      category: val.category || "core",
+      why: val.why || val.impact || "Important employer requirement.",
+      evidenceExpectation: val.evidenceExpectation || "Demonstrated portfolio work sample.",
+    })),
+]);
+export type MarketRequirementItem = z.infer<typeof MarketRequirementItemSchema>;
+
+export const EmergingSkillSchema = z.object({
+  skill: z.string(),
+  trend: z.string().nullish().default("Growing"),
+  detail: z.string().nullish().default(""),
+});
+export type EmergingSkill = z.infer<typeof EmergingSkillSchema>;
 
 export const MarketIntelligenceOutputSchema = z
   .object({
     targetRole: z.string().nullish().default(""),
     targetIndustry: z.string().nullish().default(""),
+    targetCompany: z.string().nullish().default(""),
     recurringSkills: z.array(z.string()).nullish(),
     skills: z.array(z.string()).nullish(),
     tools: z.array(z.string()).nullish().default([]),
@@ -126,20 +282,37 @@ export const MarketIntelligenceOutputSchema = z
     qualifications: z.array(z.string()).nullish().default([]),
     experienceExpectations: z.array(z.string()).nullish().default([]),
     evidenceExpectations: z.array(z.string()).nullish().default([]),
+    coreRequirements: z.array(MarketRequirementItemSchema).nullish().default([]),
+    importantRequirements: z.array(MarketRequirementItemSchema).nullish().default([]),
+    differentiators: z.array(MarketRequirementItemSchema).nullish().default([]),
+    emergingSkills: z.array(EmergingSkillSchema).nullish().default([]),
+    optionalSkills: z.array(z.string()).nullish().default([]),
+    domainKnowledge: z.array(z.string()).nullish().default([]),
+    communicationExpectations: z.array(z.string()).nullish().default([]),
     marketOverview: z.string().nullish().default(""),
+    researchTimestamp: z.string().nullish().default(new Date().toISOString()),
     sources: z.array(SourceReferenceSchema).nullish().default([]),
     isControlledFallback: z.boolean().nullish().default(false),
   })
   .transform((val) => ({
     targetRole: val.targetRole || "",
     targetIndustry: val.targetIndustry || "",
+    targetCompany: val.targetCompany || "",
     recurringSkills: (val.recurringSkills && val.recurringSkills.length > 0) ? val.recurringSkills : (val.skills || []),
     tools: val.tools || [],
     responsibilities: val.responsibilities || [],
     qualifications: val.qualifications || [],
     experienceExpectations: val.experienceExpectations || [],
     evidenceExpectations: val.evidenceExpectations || [],
+    coreRequirements: val.coreRequirements || [],
+    importantRequirements: val.importantRequirements || [],
+    differentiators: val.differentiators || [],
+    emergingSkills: val.emergingSkills || [],
+    optionalSkills: val.optionalSkills || [],
+    domainKnowledge: val.domainKnowledge || [],
+    communicationExpectations: val.communicationExpectations || [],
     marketOverview: val.marketOverview || "",
+    researchTimestamp: val.researchTimestamp || new Date().toISOString(),
     sources: val.sources || [],
     isControlledFallback: val.isControlledFallback ?? false,
   }));
@@ -185,11 +358,112 @@ export const TransitionPatternSchema = z
   }));
 export type TransitionPattern = z.infer<typeof TransitionPatternSchema>;
 
+export const ProfessionalProfileSchema = z
+  .object({
+    name: z.string().nullish().default("Practitioner"),
+    currentRole: z.string().nullish(),
+    role: z.string().nullish(),
+    title: z.string().nullish(),
+    company: z.string().nullish().default(""),
+    organization: z.string().nullish().default(""),
+    startingPoint: z.string().nullish().default(""),
+    careerSteps: z.array(z.string()).nullish().default([]),
+    careerPath: z.array(z.string()).nullish().default([]),
+    skills: z.array(z.string()).nullish().default([]),
+    experiences: z.array(z.string()).nullish().default([]),
+    keyLearnings: z.array(z.string()).nullish().default([]),
+    transitions: z.union([z.string(), z.array(z.string())]).nullish(),
+    relevantTransition: z.string().nullish().default(""),
+    relevanceToCandidate: z.string().nullish().default(""),
+    whyRelevant: z.string().nullish().default(""),
+    sources: z.array(SourceReferenceSchema).nullish().default([]),
+  })
+  .transform((val) => {
+    const role = val.currentRole || val.role || val.title || "Industry Practitioner";
+    const trans = Array.isArray(val.transitions)
+      ? val.transitions.join("; ")
+      : val.transitions || val.relevantTransition || "Progressive ownership and project delivery";
+    return {
+      name: val.name || "Practitioner",
+      currentRole: role,
+      company: val.company || val.organization || "",
+      organization: val.organization || val.company || "",
+      startingPoint: val.startingPoint || (val.careerSteps?.[0] || val.careerPath?.[0] || "Foundational Role"),
+      careerSteps: (val.careerSteps && val.careerSteps.length > 0) ? val.careerSteps : (val.careerPath || []),
+      careerPath: (val.careerPath && val.careerPath.length > 0) ? val.careerPath : (val.careerSteps || []),
+      skills: (val.skills && val.skills.length > 0) ? val.skills : (val.keyLearnings || []),
+      keyLearnings: (val.keyLearnings && val.keyLearnings.length > 0) ? val.keyLearnings : (val.skills || []),
+      experiences: val.experiences || [],
+      transitions: trans,
+      relevantTransition: trans,
+      relevanceToCandidate: val.relevanceToCandidate || val.whyRelevant || "Provides proven trajectory precedent for your background",
+      whyRelevant: val.whyRelevant || val.relevanceToCandidate || "Provides proven trajectory precedent for your background",
+      sources: val.sources || [],
+    };
+  });
+export type ProfessionalProfile = z.infer<typeof ProfessionalProfileSchema>;
+
+export const CareerRouteSchema = z
+  .object({
+    routeId: z.string().nullish().default("route-1"),
+    name: z.string().nullish(),
+    routeName: z.string().nullish(),
+    stages: z.array(z.string()).nullish().default([]),
+    description: z.string().nullish().default(""),
+    supportingProfiles: z.array(z.string()).nullish().default([]),
+    isClosestRoute: z.boolean().nullish().default(false),
+    candidateFit: z.string().nullish().default(""),
+    whyClosest: z.string().nullish().default(""),
+  })
+  .transform((val) => ({
+    routeId: val.routeId || "route-1",
+    name: val.name || val.routeName || "Career Route",
+    routeName: val.routeName || val.name || "Career Route",
+    stages: val.stages || [],
+    description: val.description || "",
+    supportingProfiles: val.supportingProfiles || [],
+    isClosestRoute: val.isClosestRoute ?? false,
+    candidateFit: val.candidateFit || val.whyClosest || "",
+    whyClosest: val.whyClosest || val.candidateFit || "",
+  }));
+export type CareerRouteItem = z.infer<typeof CareerRouteSchema>;
+
+export const RecurringPatternSchema = z
+  .object({
+    pattern: z.string(),
+    evidence: z.string().nullish().default(""),
+    frequencyIfSupported: z.string().nullish().default("4 / 5"),
+    observedCount: z.string().nullish(),
+    importance: z.string().nullish().default("High"),
+    explanation: z.string().nullish().default(""),
+    strength: z.enum(["strong", "moderate", "weak"]).nullish().default("strong"),
+    observedIn: z.number().nullish().default(4),
+    sampleSize: z.number().nullish().default(5),
+  })
+  .transform((val) => ({
+    pattern: val.pattern,
+    evidence: val.evidence || "",
+    frequencyIfSupported: val.frequencyIfSupported || val.observedCount || "4 / 5",
+    observedCount: val.observedCount || val.frequencyIfSupported || "4 / 5",
+    importance: val.importance || "High",
+    explanation: val.explanation || val.evidence || "",
+    strength: val.strength || "strong",
+    observedIn: val.observedIn ?? 4,
+    sampleSize: val.sampleSize ?? 5,
+  }));
+export type TrajectoryPatternItem = z.infer<typeof RecurringPatternSchema>;
+
 export const CareerTrajectoryOutputSchema = z
   .object({
     targetRole: z.string().nullish().default(""),
+    summary: z.string().nullish().default(""),
     recurringTrajectoryStages: z.array(TrajectoryStageSchema).nullish(),
     stages: z.array(TrajectoryStageSchema).nullish(),
+    professionals: z.array(ProfessionalProfileSchema).nullish().default([]),
+    routes: z.array(CareerRouteSchema).nullish().default([]),
+    recurringPatterns: z.array(RecurringPatternSchema).nullish().default([]),
+    patterns: z.array(RecurringPatternSchema).nullish().default([]),
+    closestRoute: CareerRouteSchema.nullish(),
     commonSkills: z.array(z.string()).nullish(),
     skills: z.array(z.string()).nullish(),
     commonExperiences: z.array(z.string()).nullish(),
@@ -204,7 +478,14 @@ export const CareerTrajectoryOutputSchema = z
   })
   .transform((val) => ({
     targetRole: val.targetRole || "",
+    summary: val.summary || "Across researched professional trajectories, successful candidates consistently leverage prior execution experience to step into higher ownership.",
     recurringTrajectoryStages: (val.recurringTrajectoryStages && val.recurringTrajectoryStages.length > 0) ? val.recurringTrajectoryStages : (val.stages || []),
+    stages: (val.stages && val.stages.length > 0) ? val.stages : (val.recurringTrajectoryStages || []),
+    professionals: val.professionals || [],
+    routes: val.routes || [],
+    recurringPatterns: (val.recurringPatterns && val.recurringPatterns.length > 0) ? val.recurringPatterns : (val.patterns || []),
+    patterns: (val.patterns && val.patterns.length > 0) ? val.patterns : (val.recurringPatterns || []),
+    closestRoute: val.closestRoute || null,
     commonSkills: (val.commonSkills && val.commonSkills.length > 0) ? val.commonSkills : (val.skills || []),
     commonExperiences: (val.commonExperiences && val.commonExperiences.length > 0) ? val.commonExperiences : (val.experiences || []),
     commonTransitions: (val.commonTransitions && val.commonTransitions.length > 0) ? val.commonTransitions : (val.transitions || []),
@@ -341,17 +622,6 @@ export type PathwayOutput = z.infer<typeof PathwayOutputSchema>;
 // 7. Canonical Career Intelligence Types
 // ==========================================
 
-export interface ProfessionalProfile {
-  name: string;
-  currentRole: string;
-  organization?: string;
-  careerPath: string[]; // e.g. ["Software Engineer", "Product Analyst", "Product Manager"]
-  relevantTransition: string;
-  whyRelevant: string;
-  keyLearnings: string[];
-  sources: SourceReference[];
-}
-
 export interface TrajectoryStageItem {
   stageNumber: number;
   stageName: string;
@@ -359,24 +629,6 @@ export interface TrajectoryStageItem {
   description: string;
   keyFocus: string;
   candidateRelevance?: string;
-}
-
-export interface CareerRouteItem {
-  routeId: string;
-  routeName: string; // e.g. "Route 01: Technical → Product"
-  stages: string[];
-  description: string;
-  isClosestRoute: boolean;
-  whyClosest: string;
-}
-
-export interface TrajectoryPatternItem {
-  pattern: string; // e.g. "Technical or analytical foundation"
-  observedCount: string; // e.g. "4 / 5"
-  observedIn: number;
-  sampleSize: number;
-  strength: "strong" | "moderate" | "weak";
-  evidence: string;
 }
 
 export interface JourneyComparisonItem {

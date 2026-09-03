@@ -25,13 +25,21 @@ import {
   Ban,
   Check,
   CircleDot,
-  UserCheck,
   Calendar,
+  Globe,
+  Sliders,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnalysisRecord, CanonicalAnalysis } from "@/types";
 import { buildCanonicalAnalysis } from "@/lib/analysis/canonicalNormalizer";
 import { AskMacOsDrawer } from "@/components/chat/AskMacOsDrawer";
+import { SapWorkforceStrategyModal } from "@/components/enterprise/SapWorkforceStrategyModal";
+import {
+  PersonalizePathBar,
+  ConstraintFilterId,
+  CONSTRAINT_OPTIONS,
+} from "@/components/pathway/PersonalizePathBar";
 
 type TabKey =
   | "snapshot"
@@ -56,6 +64,8 @@ export default function ResultsPage({
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("snapshot");
+  const [isSapModalOpen, setIsSapModalOpen] = useState(false);
+  const [activeConstraint, setActiveConstraint] = useState<ConstraintFilterId>("all");
 
   // Contextual Chat states
   const [selectedFocusItem, setSelectedFocusItem] = useState<string | undefined>(undefined);
@@ -251,6 +261,19 @@ export default function ResultsPage({
                   </p>
                 </div>
               </div>
+
+              <Button
+                onClick={() => setIsSapModalOpen(true)}
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex items-center gap-1.5 rounded-full border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 hover:text-white text-xs h-10 px-3.5 font-bold transition-all hover:scale-105 active:scale-95 shadow-sm"
+              >
+                <Globe className="h-3.5 w-3.5 text-blue-400" />
+                <span>SAP Strategy</span>
+                <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[9px] font-mono text-blue-200 uppercase">
+                  Vision
+                </span>
+              </Button>
 
               <Button
                 onClick={() => {
@@ -929,6 +952,12 @@ export default function ResultsPage({
         {/* ========================================================================= */}
         {activeTab === "pathway" && (
           <div className="space-y-10">
+            {/* PERSONALIZE MY PATH: INCLUSIVE CONSTRAINTS & ADAPTIVE FILTERS */}
+            <PersonalizePathBar
+              activeConstraint={activeConstraint}
+              onSelectConstraint={setActiveConstraint}
+            />
+
             {/* 90-Day Plan Header */}
             <div className="rounded-3xl border border-white/[0.12] bg-gradient-to-r from-[#ac1ed6]/15 via-[#121016] to-[#c26e73]/15 p-6 sm:p-8 space-y-5 shadow-xl">
               <div className="flex items-center gap-3">
@@ -1042,6 +1071,33 @@ export default function ResultsPage({
                               <p className="text-[11px] text-[#d5d0dd] mt-0.5 font-medium">{act.proof}</p>
                             </div>
                           </div>
+
+                          {/* Constraint-Adapted Action Box */}
+                          {activeConstraint !== "all" && (
+                            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-3.5 space-y-1 mt-2 animate-in fade-in duration-150">
+                              <div className="flex items-center gap-2">
+                                <span className="rounded-full bg-emerald-500/20 text-emerald-400 px-2 py-0.5 text-[10px] font-mono font-bold uppercase">
+                                  {activeConstraint === "free_only" && "🆓 Free / Open-Source Path"}
+                                  {activeConstraint === "accessible" && "♿ Accessible Format"}
+                                  {activeConstraint === "remote" && "🌐 Remote-First Proof"}
+                                  {activeConstraint === "self_paced" && "⏱ 3–5 Hrs/Wk Micro-Step"}
+                                  {activeConstraint === "student_switcher" && "🎓 Switcher Bridge"}
+                                </span>
+                              </div>
+                              <p className="text-xs text-[#d5d0dd] leading-relaxed">
+                                {activeConstraint === "free_only" &&
+                                  `Zero-Cost Strategy: Avoid paid courses or premium tools. Build an open-source PRD case study on GitHub or free Notion, referencing public open lectures and repositories.`}
+                                {activeConstraint === "accessible" &&
+                                  `Accessibility Strategy: Structure this deliverable using semantic markdown headings, high visual contrast, descriptive hyperlinks, and screen-reader accessible alt-text.`}
+                                {activeConstraint === "remote" &&
+                                  `Remote-First Strategy: Record a concise 3-minute asynchronous Loom walkthrough and link it to your GitHub README to prove distributed communication readiness.`}
+                                {activeConstraint === "self_paced" &&
+                                  `Self-Paced Strategy: Split this deliverable into two 90-minute weekend sessions. Commit intermediate progress to stay on track without schedule burnout.`}
+                                {activeConstraint === "student_switcher" &&
+                                  `Domain-Bridge Strategy: Anchor this deliverable to a problem from your previous industry or coursework to demonstrate transferrable analytical rigor.`}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -1263,6 +1319,14 @@ export default function ResultsPage({
         activeSection={activeTab}
         focusedItem={selectedFocusItem}
         initialQuestion={chatInitialQuestion}
+      />
+
+      {/* SAP WORKFORCE STRATEGY & ENTERPRISE VISION MODAL */}
+      <SapWorkforceStrategyModal
+        isOpen={isSapModalOpen}
+        onClose={() => setIsSapModalOpen(false)}
+        candidateName={candidate.fullName}
+        targetRole={destination.role}
       />
     </div>
   );

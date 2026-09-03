@@ -16,8 +16,10 @@ import {
   X,
   Loader2,
   TrendingUp,
-  Layers,
   Cpu,
+  Layers,
+  Sliders,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SYNTHETIC_RESUME_TEXT } from "@/lib/fixtures/syntheticResume";
@@ -64,6 +66,15 @@ const SUGGESTED_ROLES = [
   "Data Platform Lead",
 ];
 
+const INTAKE_CONSTRAINTS = [
+  { id: "free_only", label: "Free / Open-Source Resources Only", icon: "🆓" },
+  { id: "accessible", label: "Screen-Reader & Accessible Formats", icon: "♿" },
+  { id: "remote", label: "Remote-Friendly Opportunities", icon: "🌐" },
+  { id: "self_paced", label: "Flexible & Self-Paced (3–5 hrs/wk)", icon: "⏱" },
+  { id: "student", label: "Student / Early Career", icon: "🎓" },
+  { id: "switcher", label: "Career Switcher / Non-Traditional", icon: "🔄" },
+];
+
 export default function AnalyzePage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,7 +84,14 @@ export default function AnalyzePage() {
   const [targetIndustry, setTargetIndustry] = useState("B2B SaaS / Developer Tools");
   const [targetCompany, setTargetCompany] = useState("");
   const [additionalContext, setAdditionalContext] = useState("");
+  const [selectedConstraints, setSelectedConstraints] = useState<string[]>([]);
   const [isUsingSynthetic, setIsUsingSynthetic] = useState(false);
+
+  const toggleConstraint = (id: string) => {
+    setSelectedConstraints((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
   // Analysis Processing State
   const [isProcessing, setIsProcessing] = useState(false);
@@ -157,8 +175,13 @@ export default function AnalyzePage() {
       formData.append("resume", file);
       formData.append("targetRole", targetRole.trim());
       formData.append("targetIndustry", targetIndustry.trim());
-      formData.append("targetCompany", targetCompany.trim());
-      formData.append("additionalContext", additionalContext.trim());
+      const constraintText =
+        selectedConstraints.length > 0
+          ? `\nPersonalized Constraints & Learning Preferences: ${selectedConstraints
+              .map((id) => INTAKE_CONSTRAINTS.find((c) => c.id === id)?.label || id)
+              .join("; ")}`
+          : "";
+      formData.append("additionalContext", (additionalContext.trim() + constraintText).trim());
 
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -388,6 +411,47 @@ export default function AnalyzePage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* SECTION 3: PERSONALIZE MY PATH (OPTIONAL CONSTRAINTS) */}
+        <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 sm:p-8 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+            <div className="space-y-1">
+              <h2 className="font-bold text-lg text-white flex items-center gap-2.5">
+                <Sliders className="h-5 w-5 text-[#ac1ed6]" />
+                3. Personalize My Path (Optional Preferences)
+              </h2>
+              <p className="text-xs text-[#9a93a5]">
+                Optional preferences to help M.A.C.O.S. adapt your pathway to your real-world circumstances.
+              </p>
+            </div>
+            <span className="text-[11px] font-mono text-[#ac1ed6] hidden sm:inline-block">INCLUSIVE ROUTE</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+            {INTAKE_CONSTRAINTS.map((c) => {
+              const isSelected = selectedConstraints.includes(c.id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => toggleConstraint(c.id)}
+                  className={`flex items-center gap-2.5 rounded-2xl border p-3 text-left transition-all ${
+                    isSelected
+                      ? "border-[#ac1ed6] bg-[#ac1ed6]/10 text-white shadow-md shadow-[#ac1ed6]/15 font-semibold"
+                      : "border-white/[0.06] bg-[#090607]/60 text-[#d5d0dd] hover:border-white/20 hover:bg-white/[0.02]"
+                  }`}
+                >
+                  <span className="text-base">{c.icon}</span>
+                  <span className="text-xs">{c.label}</span>
+                  {isSelected && <Check className="h-3.5 w-3.5 ml-auto text-[#ac1ed6]" />}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-[#757080] italic pt-1">
+            “M.A.C.O.S. doesn't just ask what career you want. It asks what path is realistically accessible to you — and adapts the journey accordingly.”
+          </p>
         </div>
 
         {/* ERROR MESSAGE DISPLAY */}

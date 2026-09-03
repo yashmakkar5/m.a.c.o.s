@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Compass, Sparkles, Activity, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function Navbar() {
   return (
@@ -39,6 +40,7 @@ export function Navbar() {
             <Activity className="h-3.5 w-3.5 text-[#c26e73]" />
             <span className="hidden sm:inline">Diagnostics</span>
           </Link>
+          <ThemeToggle />
           <Link href="/analyze">
             <Button
               size="sm"

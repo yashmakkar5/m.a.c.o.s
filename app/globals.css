@@ -49,7 +49,44 @@
 }
 
 /* Default Theme: Premium Obsidian & Ambient Violet-Rose */
+/* Light Theme (Default Root) */
 :root {
+  --background: #f8f7fa;
+  --foreground: #15111e;
+  --card: #ffffff;
+  --card-foreground: #15111e;
+  --popover: #ffffff;
+  --popover-foreground: #15111e;
+  --primary: #9c17c2;
+  --primary-foreground: #ffffff;
+  --secondary: #f0edf5;
+  --secondary-foreground: #221d2d;
+  --muted: #f2eff6;
+  --muted-foreground: #5e576c;
+  --accent: #b55a60;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --border: rgba(0, 0, 0, 0.09);
+  --input: rgba(0, 0, 0, 0.12);
+  --ring: #9c17c2;
+  --chart-1: #9c17c2;
+  --chart-2: #b55a60;
+  --chart-3: #7c3aed;
+  --chart-4: #db2777;
+  --chart-5: #0284c7;
+  --radius: 1rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #15111e;
+  --sidebar-primary: #9c17c2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0edf5;
+  --sidebar-accent-foreground: #221d2d;
+  --sidebar-border: rgba(0, 0, 0, 0.08);
+  --sidebar-ring: #9c17c2;
+}
+
+/* Dark Theme: Premium Obsidian & Ambient Violet-Rose */
+.dark {
   --background: #090607;
   --foreground: #f4f2f5;
   --card: #121016;
@@ -84,49 +121,36 @@
   --sidebar-ring: #ac1ed6;
 }
 
-.dark {
-  --background: #090607;
-  --foreground: #f4f2f5;
-  --card: #121016;
-  --card-foreground: #f4f2f5;
-  --popover: #15121b;
-  --popover-foreground: #f4f2f5;
-  --primary: #ac1ed6;
-  --primary-foreground: #ffffff;
-  --secondary: #1e1a26;
-  --secondary-foreground: #e1dce8;
-  --muted: #191522;
-  --muted-foreground: #9a93a5;
-  --accent: #c26e73;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --border: rgba(255, 255, 255, 0.09);
-  --input: rgba(255, 255, 255, 0.12);
-  --ring: #ac1ed6;
-  --chart-1: #ac1ed6;
-  --chart-2: #c26e73;
-  --chart-3: #8b5cf6;
-  --chart-4: #ec4899;
-  --chart-5: #38bdf8;
-  --radius: 1rem;
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    background-attachment: fixed;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  html.dark body {
     background-color: #090607;
     color: #f4f2f5;
     background-image: 
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(172, 30, 214, 0.18), transparent 70%),
       radial-gradient(ellipse 60% 40% at 90% 10%, rgba(194, 110, 115, 0.12), transparent 60%);
-    background-attachment: fixed;
   }
-  html {
-    @apply font-sans;
+  html.light body,
+  html:not(.dark) body {
+    background-color: #f7f6fa;
+    color: #15111e;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(172, 30, 214, 0.07), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 90% 10%, rgba(194, 110, 115, 0.05), transparent 60%);
+  }
+  html.dark {
     color-scheme: dark;
+  }
+  html.light,
+  html:not(.dark) {
+    color-scheme: light;
   }
 }
 
@@ -166,4 +190,131 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================================================= */
+/* Comprehensive Light Mode Overrides */
+/* ========================================================================= */
+
+html.light .bg-\[\#090607\],
+html.light .bg-\[\#090607\]\/80,
+html.light .bg-\[\#090607\]\/85,
+html.light .bg-\[\#090607\]\/90 {
+  background-color: #f3f1f6 !important;
+}
+
+html.light .bg-\[\#090607\]\/60 {
+  background-color: rgba(243, 241, 246, 0.75) !important;
+}
+
+html.light .bg-\[\#121016\],
+html.light .bg-\[\#14121a\],
+html.light .bg-\[\#15121b\],
+html.light .bg-\[\#100e14\],
+html.light .bg-\[\#0e0c12\],
+html.light .gradient-border-card {
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 24px -2px rgba(21, 17, 30, 0.04);
+}
+
+html.light .bg-\[\#121016\]\/90,
+html.light .bg-\[\#121016\]\/80 {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+}
+
+html.light .text-white {
+  color: #15111e !important;
+}
+
+html.light .text-\[\#f4f2f5\],
+html.light .text-\[\#d5d0dd\],
+html.light .text-\[\#e1dce8\] {
+  color: #2b2537 !important;
+}
+
+html.light .text-\[\#9a93a5\] {
+  color: #5c556b !important;
+}
+
+html.light .text-\[\#757080\] {
+  color: #787185 !important;
+}
+
+html.light .border-white\/\[0\.08\],
+html.light .border-white\/\[0\.06\],
+html.light .border-white\/10,
+html.light .border-white\/\[0\.12\],
+html.light .border-white\/\[0\.1\] {
+  border-color: rgba(21, 17, 30, 0.08) !important;
+}
+
+html.light .border-white\/20,
+html.light .border-white\/\[0\.2\] {
+  border-color: rgba(21, 17, 30, 0.16) !important;
+}
+
+html.light header {
+  background-color: rgba(247, 246, 250, 0.88) !important;
+  border-bottom-color: rgba(21, 17, 30, 0.08) !important;
+}
+
+html.light .sticky {
+  background-color: rgba(247, 246, 250, 0.92) !important;
+}
+
+html.light .bg-white\/\[0\.04\],
+html.light .bg-white\/\[0\.03\],
+html.light .bg-white\/\[0\.06\],
+html.light .bg-white\/\[0\.08\],
+html.light .bg-white\/\[0\.02\] {
+  background-color: rgba(21, 17, 30, 0.04) !important;
+}
+
+html.light .bg-white\/10 {
+  background-color: rgba(21, 17, 30, 0.06) !important;
+}
+
+html.light input,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #15111e !important;
+  border-color: rgba(21, 17, 30, 0.12) !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #8c8599 !important;
+}
+
+/* Ensure brand gradient buttons & badges preserve white text in Light Mode */
+html.light [class*="bg-gradient-to-r"].text-white,
+html.light [class*="bg-gradient-to-tr"].text-white,
+html.light button[class*="bg-gradient"],
+html.light a[class*="bg-gradient"],
+html.light .rounded-full[class*="bg-gradient"] {
+  color: #ffffff !important;
+}
+
+html.light button[class*="bg-gradient"] *,
+html.light a[class*="bg-gradient"] *,
+html.light [class*="bg-gradient"] svg {
+  color: #ffffff !important;
+}
+
+/* Modal and Drawer backdrop blur in Light Mode */
+html.light .fixed.inset-0.bg-black\/85,
+html.light .fixed.inset-0.bg-black\/80,
+html.light .fixed.inset-0.bg-\[\#090607\]\/90 {
+  background-color: rgba(21, 17, 30, 0.4) !important;
+}
+
+/* Headline gradient aura in Light Mode */
+html.light .gradient-text-aura {
+  background: linear-gradient(135deg, #15111e 30%, #3a324a 65%, #c26e73 95%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html.light .bg-gradient-to-r.from-white {
+  background-image: linear-gradient(to right, #15111e, #3a324a, #c26e73) !important;
 }

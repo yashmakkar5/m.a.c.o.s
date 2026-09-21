@@ -1,26 +1,28 @@
 import { NextResponse } from "next/server";
-import { isGeminiConfigured, pingGemini, DEFAULT_GEMINI_MODEL } from "@/lib/ai/gemini";
+import { isAzureFoundryConfigured, pingAzureFoundry, DEFAULT_AZURE_MODEL } from "@/lib/ai/azureFoundry";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  if (!isGeminiConfigured()) {
-    return NextResponse.json({
-      configured: false,
-      provider: "Gemini",
-      status: "not_configured",
-      model: DEFAULT_GEMINI_MODEL,
-      error: "Gemini authentication failed: GEMINI_API_KEY is not configured.",
-    }, { status: 503 });
+  if (!isAzureFoundryConfigured()) {
+    return NextResponse.json(
+      {
+        configured: false,
+        provider: "Azure AI Foundry (AI-103)",
+        status: "not_configured",
+        model: DEFAULT_AZURE_MODEL,
+        error: "Azure AI Foundry authentication failed: AZURE_AI_FOUNDRY_API_KEY is not configured.",
+      },
+      { status: 503 }
+    );
   }
 
-  const result = await pingGemini();
-  const provider = result.provider || "Azure AI Foundry (AI-103)";
+  const result = await pingAzureFoundry();
 
   if (result.success) {
     return NextResponse.json({
       configured: true,
-      provider,
+      provider: "Azure AI Foundry (AI-103)",
       status: "ok",
       model: result.model,
       latencyMs: result.latencyMs,
@@ -30,10 +32,10 @@ export async function GET() {
   return NextResponse.json(
     {
       configured: true,
-      provider,
+      provider: "Azure AI Foundry (AI-103)",
       status: "error",
       model: result.model,
-      error: result.error || `Failed to communicate with ${provider} API.`,
+      error: result.error || "Failed to communicate with Azure AI Foundry API.",
     },
     { status: 502 }
   );

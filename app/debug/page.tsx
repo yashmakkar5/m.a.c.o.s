@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, XCircle, ArrowLeft, RefreshCw, AlertTriangle, Activity, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { isGeminiConfigured, pingGemini, getActiveAiProvider } from "@/lib/ai/gemini";
+import { isAzureFoundryConfigured, pingAzureFoundry, DEFAULT_AZURE_MODEL } from "@/lib/ai/azureFoundry";
 import { isSupabaseServerConfigured, pingSupabase } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -16,41 +16,33 @@ export default async function DebugPage() {
     detail: "Next.js 16 (Turbopack) server running and serving routes.",
   };
 
-  // 2. AI Engine Live Check (Azure AI Foundry / Gemini)
-  const aiConfigured = isGeminiConfigured();
-  const activeProvider = getActiveAiProvider();
-  const providerLabel = activeProvider === "azure_foundry" ? "Azure AI Foundry (AI-103)" : "Google Gemini Engine";
-
+  // 2. Azure AI Foundry (AI-103) Live Check
+  const aiConfigured = isAzureFoundryConfigured();
   let aiEngineStatus = {
-    name: providerLabel,
+    name: "Azure AI Foundry (AI-103)",
     status: "Not configured",
     badge: "Missing Key",
     isOk: false,
-    detail: activeProvider === "azure_foundry"
-      ? "Add AZURE_AI_FOUNDRY_API_KEY to .env.local to enable Azure AI Foundry."
-      : "Add GEMINI_API_KEY to .env.local to enable Gemini orchestration.",
+    detail: "Add AZURE_AI_FOUNDRY_API_KEY to .env.local to enable Azure AI Foundry.",
   };
 
   if (aiConfigured) {
-    const ping = await pingGemini();
-    const resolvedName = ping.provider || providerLabel;
+    const ping = await pingAzureFoundry();
     if (ping.success) {
       aiEngineStatus = {
-        name: resolvedName,
+        name: "Azure AI Foundry (AI-103)",
         status: "Connected",
         badge: `${ping.model} (${ping.latencyMs}ms)`,
         isOk: true,
-        detail: activeProvider === "azure_foundry"
-          ? `Microsoft Azure AI Foundry connected to ${ping.model} (Global Standard) for AI-103 Agentic Workflow.`
-          : `Official Google GenAI SDK connected to ${ping.model} and responsive.`,
+        detail: `Microsoft Azure AI Foundry cloud model (${ping.model}) connected and verified for AI-103 Agentic Workflow.`,
       };
     } else {
       aiEngineStatus = {
-        name: resolvedName,
+        name: "Azure AI Foundry (AI-103)",
         status: "Error",
         badge: "API Failed",
         isOk: false,
-        detail: ping.error || `Unable to reach ${resolvedName}. Verify credentials and deployment.`,
+        detail: ping.error || "Unable to reach Azure AI Foundry. Verify credentials and deployment.",
       };
     }
   }
@@ -110,7 +102,7 @@ export default async function DebugPage() {
           Placey (M.A.C.O.S.) System Diagnostics
         </h1>
         <p className="text-xs sm:text-sm text-[#9a93a5] max-w-2xl">
-          Real-time diagnostic monitor testing Next.js, Google Gemini, and Supabase connectivity without exposing secret values.
+          Real-time diagnostic monitor testing Next.js, Microsoft Azure AI Foundry, and Supabase connectivity without exposing secret values.
         </p>
       </div>
 
@@ -160,7 +152,7 @@ export default async function DebugPage() {
               <code className="font-mono bg-white/[0.05] border border-white/[0.08] px-2 py-0.5 rounded text-white">/api/health</code>
             </li>
             <li className="flex items-center justify-between">
-              <span>Gemini Connection Ping:</span>
+              <span>Azure AI Foundry Ping:</span>
               <code className="font-mono bg-white/[0.05] border border-white/[0.08] px-2 py-0.5 rounded text-[#ac1ed6]">/api/health/ai</code>
             </li>
             <li className="flex items-center justify-between">

@@ -224,3 +224,73 @@ export async function generateAzureFoundryChat(options: AzureChatOptions): Promi
   const data = await res.json();
   return data.choices?.[0]?.message?.content?.trim() || "";
 }
+
+/**
+ * Pings Azure AI Foundry endpoint to verify model latency and connectivity
+ */
+export async function pingAzureFoundry(): Promise<{
+  success: boolean;
+  latencyMs: number;
+  model: string;
+  provider: string;
+  error?: string;
+}> {
+  if (!isAzureFoundryConfigured()) {
+    return {
+      success: false,
+      latencyMs: 0,
+      model: DEFAULT_AZURE_MODEL,
+      provider: "Azure AI Foundry (AI-103)",
+      error: "Azure AI Foundry is not configured. Set AZURE_AI_FOUNDRY_API_KEY.",
+    };
+  }
+
+  const start = Date.now();
+  try {
+    const endpoint = getAzureFoundryEndpoint();
+    const apiKey = getAzureFoundryApiKey();
+    const res = await fetch(`${endpoint}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: DEFAULT_AZURE_MODEL,
+        messages: [{ role: "user", content: "ping" }],
+        max_tokens: 5,
+      }),
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`Azure AI Foundry returned HTTP ${res.status}: ${txt}`);
+    }
+
+    return {
+      success: true,
+      latencyMs: Date.now() - start,
+      model: DEFAULT_AZURE_MODEL,
+      provider: "Azure AI Foundry (AI-103)",
+    };
+  } catch (err: unknown) {
+    return {
+      success: false,
+      latencyMs: Date.now() - start,
+      model: DEFAULT_AZURE_MODEL,
+      provider: "Azure AI Foundry (AI-103)",
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+// Canonical Aliases for All Agents
+export const generateText = generateAzureFoundryText;
+export const generateStructuredJson = generateAzureFoundryStructuredJson;
+export const generateChatResponse = generateAzureFoundryChat;
+export const pingAiService = pingAzureFoundry;
+export const isAiConfigured = isAzureFoundryConfigured;
+export const pingGemini = pingAzureFoundry; // drop-in backward compat
+export const isGeminiConfigured = isAzureFoundryConfigured; // drop-in backward compat
+export const DEFAULT_AI_MODEL = DEFAULT_AZURE_MODEL;
+

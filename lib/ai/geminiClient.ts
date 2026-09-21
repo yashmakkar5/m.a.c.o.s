@@ -1,5 +1,5 @@
 /**
- * Re-export the centralized Gemini AI service.
- * All agents and API routes share this single source of truth.
+ * Centralized Azure AI Foundry Client.
+ * All agents and API routes execute on Microsoft Azure AI Foundry.
  */
-export * from "./gemini";
+export * from "./azureFoundry";

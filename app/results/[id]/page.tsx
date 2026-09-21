@@ -285,7 +285,7 @@ export default function ResultsPage({
                 className="gap-2 rounded-full bg-gradient-to-r from-[#ac1ed6] to-[#c26e73] hover:opacity-95 text-white border-0 font-bold text-xs h-10 px-4 shadow-md shadow-[#ac1ed6]/20 transition-all hover:scale-105 active:scale-95"
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Ask M.A.C.O.S.</span>
+                <span>Ask Placey</span>
               </Button>
             </div>
           </div>
@@ -518,14 +518,14 @@ export default function ResultsPage({
               </div>
             </div>
 
-            {/* 5. INLINE ASK M.A.C.O.S. COPILOT WIDGET */}
+            {/* 5. INLINE ASK PLACEY (M.A.C.O.S.) COPILOT WIDGET */}
             <div className="rounded-3xl border border-[#ac1ed6]/30 bg-gradient-to-r from-[#ac1ed6]/10 via-[#121016] to-[#c26e73]/10 p-6 sm:p-8 space-y-4 shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ac1ed6] to-[#c26e73] text-white shadow-md">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-base text-white">Ask M.A.C.O.S.</h3>
+                  <h3 className="font-extrabold text-base text-white">Ask Placey (M.A.C.O.S.)</h3>
                   <p className="text-xs text-[#9a93a5]">
                     Ask anything about your career intelligence briefing. I will answer using the verified analysis.
                   </p>
@@ -1306,7 +1306,7 @@ export default function ResultsPage({
           className="h-14 px-6 rounded-full bg-gradient-to-r from-[#ac1ed6] via-[#b32dd4] to-[#c26e73] hover:opacity-95 text-white shadow-xl shadow-[#ac1ed6]/30 border border-white/20 font-bold gap-2.5 transition-all hover:scale-105 active:scale-95"
         >
           <Sparkles className="h-5 w-5" />
-          <span>Ask M.A.C.O.S.</span>
+          <span>Ask Placey</span>
         </Button>
       </div>
 

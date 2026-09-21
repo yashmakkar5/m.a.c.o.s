@@ -99,7 +99,7 @@ export default async function DebugPage() {
           <span>System Health & Remote Telemetry</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-          M.A.C.O.S. System Diagnostics
+          Placey (M.A.C.O.S.) System Diagnostics
         </h1>
         <p className="text-xs sm:text-sm text-[#9a93a5] max-w-2xl">
           Real-time diagnostic monitor testing Next.js, Google Gemini, and Supabase connectivity without exposing secret values.

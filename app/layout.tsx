@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "M.A.C.O.S. — My Adaptive Career Orchestration System",
+  title: "Placey — My Adaptive Career Orchestration System (M.A.C.O.S.)",
   description:
-    "Don't just match to a job. Navigate to a career. An AI-powered career navigation platform mapping personalized pathways via Career Trajectory Intelligence.",
+    "Placey: Don't just match to a job. Navigate to a career. Powered by M.A.C.O.S. (My Adaptive Career Orchestration System) with Career Trajectory Intelligence.",
 };
 
 export default function RootLayout({

@@ -100,7 +100,7 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="text-base sm:text-xl text-[#9a93a5] max-w-2xl mx-auto leading-relaxed font-normal pt-2">
-                M.A.C.O.S. is an adaptive orchestration system that connects where you are, decodes real professional career trajectories, identifies evidence gaps, and builds your personalised route.
+                Placey is powered by M.A.C.O.S. (My Adaptive Career Orchestration System), an intelligent navigation system that connects where you are, decodes real professional career trajectories, identifies evidence gaps, and builds your personalised route.
               </p>
             </div>
 
@@ -150,7 +150,7 @@ export default function HomePage() {
         <div className="container mx-auto max-w-3xl px-4 sm:px-6 text-center space-y-4">
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#d5d0dd]">
             <Sparkles className="h-3 w-3 text-[#ac1ed6]" />
-            <span>The M.A.C.O.S. Philosophy</span>
+            <span>The Placey & M.A.C.O.S. Philosophy</span>
           </div>
 
           <blockquote className="text-xl sm:text-2xl lg:text-3xl font-serif italic text-white tracking-tight leading-snug max-w-2xl mx-auto">
@@ -162,7 +162,7 @@ export default function HomePage() {
               — John A. Shedd
             </p>
             <p className="text-xs sm:text-sm text-[#9a93a5] max-w-xl mx-auto leading-relaxed">
-              Yash Makkar believes in turning ambition into action. M.A.C.O.S. is built around a simple belief: ambition becomes meaningful when it has a direction and a next step. <span className="text-white font-semibold">You have a destination. Let&apos;s build the route.</span>
+              Yash Makkar believes in turning ambition into action. Placey is built around a simple belief: ambition becomes meaningful when it has a direction and a next step. <span className="text-white font-semibold">You have a destination. Let&apos;s build the route.</span>
             </p>
           </div>
         </div>
@@ -174,13 +174,13 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto text-center space-y-3">
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#c26e73]">
               <Layers className="h-3.5 w-3.5" />
-              The M.A.C.O.S. Journey
+              The Placey Journey (M.A.C.O.S.)
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
               From Where You Are to Where You Want To Be
             </h2>
             <p className="text-sm sm:text-base text-[#9a93a5]">
-              Traditional job boards only look for keyword matches. M.A.C.O.S. visualizes your entire career equation in 5 interconnected steps.
+              Traditional job boards only look for keyword matches. Placey visualizes your entire career equation through M.A.C.O.S. in 5 interconnected steps.
             </p>
           </div>
 
@@ -239,7 +239,7 @@ export default function HomePage() {
                 <span className="text-[#c26e73]">Learn how people actually got there.</span>
               </h2>
               <p className="text-sm sm:text-base text-[#9a93a5] leading-relaxed">
-                Mentorship and career transition secrets are often locked behind alumni networks and elite pedigree. M.A.C.O.S. extracts real transition patterns from thousands of public career trajectories.
+                Mentorship and career transition secrets are often locked behind alumni networks and elite pedigree. Placey extracts real transition patterns from thousands of public career trajectories using M.A.C.O.S. intelligence.
               </p>
 
               <div className="space-y-3 pt-2">
@@ -408,7 +408,7 @@ export default function HomePage() {
                 Ready to map your next career chapter?
               </h2>
               <p className="text-sm sm:text-base text-[#9a93a5] max-w-lg mx-auto">
-                Upload your resume, set your career destination, and let M.A.C.O.S. build your personalised pathway.
+                Upload your resume, set your career destination, and let Placey build your personalised pathway with M.A.C.O.S.
               </p>
             </div>
             <div className="pt-2">

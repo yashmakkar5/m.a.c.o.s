@@ -85,7 +85,7 @@ export function AskMacOsDrawer({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Hello! I'm your M.A.C.O.S. career intelligence copilot. I've ingested your profile, market benchmarks, and researched trajectories for **${targetRole}**. Ask me anything about your route, gaps, or real professional precedents.`,
+      content: `Hello! I'm Placey, your M.A.C.O.S. career intelligence copilot. I've ingested your profile, market benchmarks, and researched trajectories for **${targetRole}**. Ask me anything about your route, gaps, or real professional precedents.`,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -179,9 +179,9 @@ export function AskMacOsDrawer({
           </div>
           <div>
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
-              Ask M.A.C.O.S.
+              Ask Placey
               <span className="rounded-full bg-[#ac1ed6]/20 border border-[#ac1ed6]/40 text-[#d5d0dd] text-[9px] px-2 py-0.5 font-bold uppercase tracking-wider">
-                Career Intelligence Copilot
+                M.A.C.O.S. Copilot
               </span>
             </h3>
             <p className="text-[11px] text-[#9a93a5]">
@@ -279,7 +279,7 @@ export function AskMacOsDrawer({
         {isLoading && (
           <div className="flex items-center gap-2.5 text-[#9a93a5] text-xs p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
             <Loader2 className="h-4 w-4 animate-spin text-[#ac1ed6]" />
-            <span>M.A.C.O.S. is synthesizing evidence-backed advice...</span>
+            <span>Placey is synthesizing evidence-backed advice via M.A.C.O.S....</span>
           </div>
         )}
 

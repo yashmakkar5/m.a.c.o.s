@@ -25,7 +25,7 @@ export default function ResultsPlaceholderPage() {
         </div>
         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-xs font-semibold text-[#d5d0dd]">
           <Sparkles className="h-3.5 w-3.5 text-[#ac1ed6]" />
-          <span>M.A.C.O.S. Career Map Results</span>
+          <span>Placey Career Map Results</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
           Career Navigation Results
@@ -105,7 +105,7 @@ export default function ResultsPlaceholderPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-white font-bold text-sm">
                 <Compass className="h-4 w-4 text-purple-400" />
-                4. Grounded &quot;Ask M.A.C.O.S.&quot; Assistant
+                4. Grounded &quot;Ask Placey&quot; Assistant
               </div>
               <ArrowUpRight className="h-4 w-4 text-[#757080]" />
             </div>

@@ -13,11 +13,11 @@ export function Navbar() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-base sm:text-lg font-extrabold tracking-tight text-white">
-                M.A.C.O.S.
+              <span className="text-base sm:text-lg font-black tracking-tight text-white">
+                Placey
               </span>
-              <span className="rounded-full bg-white/[0.08] border border-white/[0.1] px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#d5d0dd] uppercase">
-                PROTOTYPE
+              <span className="rounded-full bg-gradient-to-r from-[#ac1ed6]/20 to-[#c26e73]/20 border border-[#ac1ed6]/30 px-2 py-0.5 text-[9px] font-mono font-bold tracking-wider text-[#d5d0dd] uppercase">
+                M.A.C.O.S.
               </span>
             </div>
             <p className="text-[10px] text-[#9a93a5] hidden sm:block tracking-tight">

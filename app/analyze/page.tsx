@@ -224,7 +224,7 @@ export default function AnalyzePage() {
           Configure Your Career Map
         </h1>
         <p className="text-sm sm:text-base text-[#9a93a5] max-w-2xl">
-          Provide your current resume and target role. M.A.C.O.S. will extract your verified proof-of-work and mine real trajectories to construct your pathway.
+          Provide your current resume and target role. Placey (powered by M.A.C.O.S.) will extract your verified proof-of-work and mine real trajectories to construct your pathway.
         </p>
       </div>
 
@@ -422,7 +422,7 @@ export default function AnalyzePage() {
                 3. Personalize My Path (Optional Preferences)
               </h2>
               <p className="text-xs text-[#9a93a5]">
-                Optional preferences to help M.A.C.O.S. adapt your pathway to your real-world circumstances.
+                Optional preferences to help Placey adapt your pathway to your real-world circumstances using M.A.C.O.S.
               </p>
             </div>
             <span className="text-[11px] font-mono text-[#ac1ed6] hidden sm:inline-block">INCLUSIVE ROUTE</span>
@@ -450,7 +450,7 @@ export default function AnalyzePage() {
             })}
           </div>
           <p className="text-[11px] text-[#757080] italic pt-1">
-            “M.A.C.O.S. doesn't just ask what career you want. It asks what path is realistically accessible to you — and adapts the journey accordingly.”
+            “Placey doesn't just ask what career you want. It asks what path is realistically accessible to you — and adapts the journey accordingly.”
           </p>
         </div>
 

@@ -15,11 +15,12 @@ export async function GET() {
   }
 
   const result = await pingGemini();
+  const provider = result.provider || "Azure AI Foundry (AI-103)";
 
   if (result.success) {
     return NextResponse.json({
       configured: true,
-      provider: "Gemini",
+      provider,
       status: "ok",
       model: result.model,
       latencyMs: result.latencyMs,
@@ -29,10 +30,10 @@ export async function GET() {
   return NextResponse.json(
     {
       configured: true,
-      provider: "Gemini",
+      provider,
       status: "error",
       model: result.model,
-      error: result.error || "Failed to communicate with Gemini API.",
+      error: result.error || `Failed to communicate with ${provider} API.`,
     },
     { status: 502 }
   );

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, XCircle, ArrowLeft, RefreshCw, AlertTriangle, Activity, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { isGeminiConfigured, pingGemini } from "@/lib/ai/gemini";
+import { isGeminiConfigured, pingGemini, getActiveAiProvider } from "@/lib/ai/gemini";
 import { isSupabaseServerConfigured, pingSupabase } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -16,33 +16,41 @@ export default async function DebugPage() {
     detail: "Next.js 16 (Turbopack) server running and serving routes.",
   };
 
-  // 2. Gemini Live Check
-  const geminiConfigured = isGeminiConfigured();
-  let geminiStatus = {
-    name: "Gemini AI Engine",
+  // 2. AI Engine Live Check (Azure AI Foundry / Gemini)
+  const aiConfigured = isGeminiConfigured();
+  const activeProvider = getActiveAiProvider();
+  const providerLabel = activeProvider === "azure_foundry" ? "Azure AI Foundry (AI-103)" : "Google Gemini Engine";
+
+  let aiEngineStatus = {
+    name: providerLabel,
     status: "Not configured",
     badge: "Missing Key",
     isOk: false,
-    detail: "Add GEMINI_API_KEY to .env.local to enable AI orchestration.",
+    detail: activeProvider === "azure_foundry"
+      ? "Add AZURE_AI_FOUNDRY_API_KEY to .env.local to enable Azure AI Foundry."
+      : "Add GEMINI_API_KEY to .env.local to enable Gemini orchestration.",
   };
 
-  if (geminiConfigured) {
+  if (aiConfigured) {
     const ping = await pingGemini();
+    const resolvedName = ping.provider || providerLabel;
     if (ping.success) {
-      geminiStatus = {
-        name: "Gemini AI Engine",
+      aiEngineStatus = {
+        name: resolvedName,
         status: "Connected",
         badge: `${ping.model} (${ping.latencyMs}ms)`,
         isOk: true,
-        detail: `Official Google GenAI SDK connected to ${ping.model} and responsive.`,
+        detail: activeProvider === "azure_foundry"
+          ? `Microsoft Azure AI Foundry connected to ${ping.model} (Global Standard) for AI-103 Agentic Workflow.`
+          : `Official Google GenAI SDK connected to ${ping.model} and responsive.`,
       };
     } else {
-      geminiStatus = {
-        name: "Gemini AI Engine",
+      aiEngineStatus = {
+        name: resolvedName,
         status: "Error",
         badge: "API Failed",
         isOk: false,
-        detail: ping.error || "Unable to reach Gemini API. Verify key permissions.",
+        detail: ping.error || `Unable to reach ${resolvedName}. Verify credentials and deployment.`,
       };
     }
   }
@@ -80,7 +88,7 @@ export default async function DebugPage() {
     }
   }
 
-  const checks = [appStatus, geminiStatus, supabaseStatus];
+  const checks = [appStatus, aiEngineStatus, supabaseStatus];
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8 space-y-8 text-white">

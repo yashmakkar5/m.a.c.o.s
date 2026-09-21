@@ -1,5 +1,34 @@
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
+import {
+  isAzureFoundryConfigured,
+  generateAzureFoundryText,
+  generateAzureFoundryStructuredJson,
+  generateAzureFoundryChat,
+  DEFAULT_AZURE_MODEL,
+  getAzureFoundryEndpoint,
+  getAzureFoundryApiKey,
+} from "./azureFoundry";
+
+export type AiProvider = "azure_foundry" | "gemini";
+
+/**
+ * Detects whether M.A.C.O.S. should run on Azure AI Foundry (for AI-103) or Google Gemini.
+ */
+export function getActiveAiProvider(): AiProvider {
+  const envProvider = process.env.AI_PROVIDER?.trim().toLowerCase();
+  if (envProvider === "azure_foundry" || envProvider === "azure" || envProvider === "foundry") {
+    return "azure_foundry";
+  }
+  if (envProvider === "gemini") {
+    return "gemini";
+  }
+  // Auto-detect: if Azure AI Foundry is configured, use it for AI-103
+  if (isAzureFoundryConfigured()) {
+    return "azure_foundry";
+  }
+  return "gemini";
+}
 
 /**
  * Centralized Gemini Model Configuration.
@@ -12,10 +41,13 @@ export const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flas
 let cachedAiInstance: GoogleGenAI | null = null;
 
 /**
- * Validates that GEMINI_API_KEY is configured on the server.
+ * Validates that the active AI provider is configured on the server.
  * Never exposes the key.
  */
 export function isGeminiConfigured(): boolean {
+  if (getActiveAiProvider() === "azure_foundry") {
+    return isAzureFoundryConfigured();
+  }
   return Boolean(process.env.GEMINI_API_KEY?.trim());
 }
 
@@ -50,6 +82,15 @@ export interface GenerateTextOptions {
  * Basic text generation through the centralized Gemini service.
  */
 export async function generateText(options: GenerateTextOptions): Promise<string> {
+  if (getActiveAiProvider() === "azure_foundry") {
+    return generateAzureFoundryText({
+      prompt: options.prompt,
+      systemInstruction: options.systemInstruction,
+      model: options.model || options.modelName || DEFAULT_AZURE_MODEL,
+      temperature: options.temperature,
+    });
+  }
+
   const ai = getGeminiClient();
   const model = options.model || options.modelName || DEFAULT_GEMINI_MODEL;
 
@@ -66,7 +107,7 @@ export async function generateText(options: GenerateTextOptions): Promise<string
     return response.text?.trim() || "";
   } catch (err: unknown) {
     const classified = classifyGeminiError(err);
-    console.error("[M.A.C.O.S. Gemini Service] Text generation failed:", sanitizeError(err));
+    console.error("[Placey AI Service] Text generation failed:", sanitizeError(err));
     throw new Error(classified.userMessage);
   }
 }
@@ -87,6 +128,17 @@ export interface StructuredGenerationOptions<T> {
 export async function generateStructuredJson<T>(
   options: StructuredGenerationOptions<T>
 ): Promise<T> {
+  if (getActiveAiProvider() === "azure_foundry") {
+    return generateAzureFoundryStructuredJson({
+      prompt: options.prompt,
+      schema: options.schema,
+      systemInstruction: options.systemInstruction,
+      model: options.model || options.modelName || DEFAULT_AZURE_MODEL,
+      temperature: options.temperature,
+      maxRetries: options.maxRetries,
+    });
+  }
+
   const ai = getGeminiClient();
   const model = options.model || options.modelName || DEFAULT_GEMINI_MODEL;
   const maxRetries = options.maxRetries ?? 2;
@@ -163,6 +215,15 @@ export interface ChatGenerationOptions {
 export async function generateChatResponse(
   options: ChatGenerationOptions
 ): Promise<string> {
+  if (getActiveAiProvider() === "azure_foundry") {
+    return generateAzureFoundryChat({
+      systemInstruction: options.systemInstruction,
+      messages: options.messages,
+      model: options.model || options.modelName || DEFAULT_AZURE_MODEL,
+      temperature: options.temperature,
+    });
+  }
+
   const ai = getGeminiClient();
   const model = options.model || options.modelName || DEFAULT_GEMINI_MODEL;
 
@@ -183,28 +244,82 @@ export async function generateChatResponse(
       },
     });
 
-    return response.text?.trim() || "No response received from M.A.C.O.S. conversational agent.";
+    return response.text?.trim() || "No response received from Placey conversational agent.";
   } catch (err: unknown) {
     const classified = classifyGeminiError(err);
-    console.error("[M.A.C.O.S. Gemini Service] Chat generation failed:", sanitizeError(err));
+    console.error("[Placey AI Service] Chat generation failed:", sanitizeError(err));
     throw new Error(classified.userMessage);
   }
 }
 
 /**
- * Performs a minimal test generation against Gemini using the active model to verify connectivity.
+ * Performs a minimal test generation against the active AI provider (Azure AI Foundry or Gemini) to verify connectivity.
  */
 export async function pingGemini(): Promise<{
   success: boolean;
   latencyMs: number;
   model: string;
+  provider?: string;
   error?: string;
 }> {
+  if (getActiveAiProvider() === "azure_foundry") {
+    if (!isAzureFoundryConfigured()) {
+      return {
+        success: false,
+        latencyMs: 0,
+        model: DEFAULT_AZURE_MODEL,
+        provider: "Azure AI Foundry (AI-103)",
+        error: "Azure AI Foundry is active but AZURE_AI_FOUNDRY_API_KEY is missing.",
+      };
+    }
+
+    const start = Date.now();
+    try {
+      const endpoint = getAzureFoundryEndpoint();
+      const apiKey = getAzureFoundryApiKey();
+      const res = await fetch(`${endpoint}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "api-key": apiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: DEFAULT_AZURE_MODEL,
+          messages: [{ role: "user", content: "ping" }],
+          max_tokens: 5,
+        }),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`HTTP ${res.status}: ${txt}`);
+      }
+
+      return {
+        success: true,
+        latencyMs: Date.now() - start,
+        model: DEFAULT_AZURE_MODEL,
+        provider: "Azure AI Foundry (AI-103)",
+      };
+    } catch (err: unknown) {
+      const latencyMs = Date.now() - start;
+      const msg = err instanceof Error ? err.message : String(err);
+      return {
+        success: false,
+        latencyMs,
+        model: DEFAULT_AZURE_MODEL,
+        provider: "Azure AI Foundry (AI-103)",
+        error: msg,
+      };
+    }
+  }
+
   if (!isGeminiConfigured()) {
     return {
       success: false,
       latencyMs: 0,
       model: DEFAULT_GEMINI_MODEL,
+      provider: "Google Gemini",
       error: "Gemini authentication failed: GEMINI_API_KEY is not configured.",
     };
   }
@@ -225,6 +340,7 @@ export async function pingGemini(): Promise<{
       success: true,
       latencyMs: Date.now() - start,
       model: DEFAULT_GEMINI_MODEL,
+      provider: "Google Gemini",
     };
   } catch (err: unknown) {
     const latencyMs = Date.now() - start;
@@ -233,6 +349,7 @@ export async function pingGemini(): Promise<{
       success: false,
       latencyMs,
       model: DEFAULT_GEMINI_MODEL,
+      provider: "Google Gemini",
       error: classified.userMessage,
     };
   }

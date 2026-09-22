@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { CheckCircle2, XCircle, ArrowLeft, RefreshCw, AlertTriangle, Activity, ArrowUpRight } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft, RefreshCw, AlertTriangle, Activity, ArrowUpRight, Bot, Cpu, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { isAzureFoundryConfigured, pingAzureFoundry, DEFAULT_AZURE_MODEL } from "@/lib/ai/azureFoundry";
+import { isAzureFoundryConfigured, pingAzureFoundry, DEFAULT_AZURE_MODEL, AZURE_FOUNDRY_AGENTS } from "@/lib/ai/azureFoundry";
 import { isSupabaseServerConfigured, pingSupabase } from "@/lib/supabase/server";
+
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,44 @@ export default async function DebugPage() {
   }
 
   const checks = [appStatus, aiEngineStatus, supabaseStatus];
+
+  const cloudAgents = [
+    {
+      title: "Skills Discovery Agent",
+      name: AZURE_FOUNDRY_AGENTS.skills.name,
+      version: AZURE_FOUNDRY_AGENTS.skills.version,
+      id: AZURE_FOUNDRY_AGENTS.skills.id,
+      role: "Evaluates demonstrated proof vs stated claims across 4 strict categories",
+    },
+    {
+      title: "Market Intelligence Agent",
+      name: AZURE_FOUNDRY_AGENTS.market.name,
+      version: AZURE_FOUNDRY_AGENTS.market.version,
+      id: AZURE_FOUNDRY_AGENTS.market.id,
+      role: "Synthesizes market expectations, differentiators & live benchmarks",
+    },
+    {
+      title: "Career Trajectory Agent",
+      name: AZURE_FOUNDRY_AGENTS.trajectory.name,
+      version: AZURE_FOUNDRY_AGENTS.trajectory.version,
+      id: AZURE_FOUNDRY_AGENTS.trajectory.id,
+      role: "Mines real professional career transitions and maps candidate's closest route",
+    },
+    {
+      title: "Gap Analysis Specialist",
+      name: AZURE_FOUNDRY_AGENTS.gap.name,
+      version: AZURE_FOUNDRY_AGENTS.gap.version,
+      id: AZURE_FOUNDRY_AGENTS.gap.id,
+      role: "Triple triangulation across skills, market requirements & trajectory precedents",
+    },
+    {
+      title: "Pathway Architect Agent",
+      name: AZURE_FOUNDRY_AGENTS.pathway.name,
+      version: AZURE_FOUNDRY_AGENTS.pathway.version,
+      id: AZURE_FOUNDRY_AGENTS.pathway.id,
+      role: "Generates actionable 4-phase career pathway (Learn, Build, Demonstrate, Reassess)",
+    },
+  ];
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8 space-y-8 text-white">
@@ -177,6 +216,62 @@ export default async function DebugPage() {
           </Link>
         </div>
       </div>
+
+      {/* Azure AI Foundry Cloud Agent Hub (AI-103 Showcase) */}
+      <div className="rounded-3xl border border-white/[0.08] bg-[#121016] p-6 sm:p-8 space-y-6 shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-[11px] font-semibold text-purple-300">
+              <Cloud className="h-3 w-3" />
+              <span>Microsoft Azure AI Foundry (AI-103)</span>
+            </div>
+            <h2 className="text-xl font-extrabold text-white">Registered Cloud Agents</h2>
+            <p className="text-xs text-[#9a93a5]">
+              Agents registered in Azure AI Foundry project <code className="font-mono text-white/90">yashplacey</code> executing on model <code className="font-mono text-purple-300 font-bold">{DEFAULT_AZURE_MODEL}</code>.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-400 shrink-0 self-start sm:self-auto">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            5 Running in Cloud
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3">
+          {cloudAgents.map((agent, i) => (
+            <div key={i} className="rounded-2xl border border-white/[0.06] bg-[#090607]/60 p-4 space-y-2 hover:border-white/15 transition-colors">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#ac1ed6]/20 to-[#c26e73]/20 border border-white/10 flex items-center justify-center text-[#d5d0dd]">
+                    <Bot className="h-4 w-4 text-purple-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">{agent.title}</h3>
+                    <code className="font-mono text-[10px] text-purple-300">{agent.name}</code>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-white/[0.05] border border-white/10 px-2 py-0.5 text-[10px] font-mono text-[#d5d0dd]">
+                    v{agent.version}
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Cloud Active
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-[#9a93a5]">{agent.role}</p>
+              <div className="flex items-center justify-between pt-1.5 border-t border-white/[0.04] text-[10px]">
+                <span className="text-[#7e7687]">Cloud Agent ID:</span>
+                <code className="font-mono bg-white/[0.03] px-2 py-0.5 rounded text-white/80 select-all">{agent.id}</code>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
+
   );
 }

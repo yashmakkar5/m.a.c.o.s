@@ -1,4 +1,5 @@
-import { generateStructuredJson } from "@/lib/ai/geminiClient";
+import { generateStructuredJson, AZURE_FOUNDRY_AGENTS } from "@/lib/ai/foundryClient";
+
 import { getResearchProvider } from "@/lib/research/researchProvider";
 import {
   MarketIntelligenceOutput,
@@ -87,6 +88,7 @@ INSTRUCTIONS:
 `.trim();
 
   const output = await generateStructuredJson<MarketIntelligenceOutput>({
+    agent: AZURE_FOUNDRY_AGENTS.market,
     systemInstruction: MARKET_AGENT_SYSTEM_PROMPT,
     prompt,
     schema: MarketIntelligenceOutputSchema,

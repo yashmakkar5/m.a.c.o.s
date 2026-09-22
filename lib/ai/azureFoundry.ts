@@ -7,6 +7,43 @@ import { z } from "zod";
 
 export const DEFAULT_AZURE_MODEL = process.env.AZURE_AI_FOUNDRY_MODEL || "gpt-4o";
 
+export interface AzureAgentConfig {
+  name: string;
+  version: string;
+  id: string;
+}
+
+/**
+ * Cloud Agents Registered in Azure AI Foundry Dashboard (AI-103)
+ */
+export const AZURE_FOUNDRY_AGENTS = {
+  skills: {
+    name: process.env.AZURE_AGENT_SKILLS_NAME || "SkillsDiscoveryAgent",
+    version: process.env.AZURE_AGENT_SKILLS_VERSION || "4",
+    id: process.env.AZURE_AGENT_SKILLS_ID || "20799820-18dc-4f50-9571-2dd73c2c251c",
+  },
+  market: {
+    name: process.env.AZURE_AGENT_MARKET_NAME || "marketIntelligenceAgent",
+    version: process.env.AZURE_AGENT_MARKET_VERSION || "2",
+    id: process.env.AZURE_AGENT_MARKET_ID || "8d3095f3-b568-4252-b92a-7efd308674f8",
+  },
+  trajectory: {
+    name: process.env.AZURE_AGENT_TRAJECTORY_NAME || "careerTrajectoryIntelligenceAgent",
+    version: process.env.AZURE_AGENT_TRAJECTORY_VERSION || "2",
+    id: process.env.AZURE_AGENT_TRAJECTORY_ID || "c8166b1b-5cf8-4621-909f-c96e6a943577",
+  },
+  gap: {
+    name: process.env.AZURE_AGENT_GAP_NAME || "gapAnalysisSpecialist",
+    version: process.env.AZURE_AGENT_GAP_VERSION || "2",
+    id: process.env.AZURE_AGENT_GAP_ID || "1ff16921-114c-4335-96b9-0cd5da8958c8",
+  },
+  pathway: {
+    name: process.env.AZURE_AGENT_PATHWAY_NAME || "pathwayArchitectAgent",
+    version: process.env.AZURE_AGENT_PATHWAY_VERSION || "2",
+    id: process.env.AZURE_AGENT_PATHWAY_ID || "6c1a05e7-fe9b-4d7c-b1a9-93c0913832e1",
+  },
+} as const;
+
 export function getAzureFoundryEndpoint(): string {
   const raw =
     process.env.AZURE_AI_FOUNDRY_ENDPOINT?.trim() ||
@@ -88,6 +125,7 @@ export interface AzureStructuredOptions<T> {
   prompt: string;
   schema: z.ZodType<T>;
   systemInstruction?: string;
+  agent?: AzureAgentConfig | { name: string; version: string; id?: string };
   model?: string;
   temperature?: number;
   maxRetries?: number;
@@ -104,6 +142,12 @@ export async function generateAzureFoundryStructuredJson<T>(
   const model = options.model || DEFAULT_AZURE_MODEL;
   const maxRetries = options.maxRetries ?? 2;
 
+  if (options.agent) {
+    console.log(
+      `[Azure AI Foundry Agent] Invoking cloud agent: ${options.agent.name} (v${options.agent.version}, ID: ${options.agent.id || "N/A"})`
+    );
+  }
+
   let currentPrompt = options.prompt;
   let lastError: unknown = null;
 
@@ -118,18 +162,31 @@ export async function generateAzureFoundryStructuredJson<T>(
       messages.push({ role: "system", content: systemPrompt });
       messages.push({ role: "user", content: currentPrompt });
 
+      const requestBody: Record<string, unknown> = {
+        model,
+        response_format: { type: "json_object" },
+        temperature: options.temperature ?? 0.1,
+        messages,
+      };
+
+      if (options.agent) {
+        requestBody.extra_body = {
+          agent_reference: {
+            name: options.agent.name,
+            version: options.agent.version,
+            type: "agent_reference",
+            id: options.agent.id,
+          },
+        };
+      }
+
       const res = await fetch(`${endpoint}/chat/completions`, {
         method: "POST",
         headers: {
           "api-key": apiKey,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model,
-          response_format: { type: "json_object" },
-          temperature: options.temperature ?? 0.1,
-          messages,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!res.ok) {
@@ -290,7 +347,6 @@ export const generateStructuredJson = generateAzureFoundryStructuredJson;
 export const generateChatResponse = generateAzureFoundryChat;
 export const pingAiService = pingAzureFoundry;
 export const isAiConfigured = isAzureFoundryConfigured;
-export const pingGemini = pingAzureFoundry; // drop-in backward compat
-export const isGeminiConfigured = isAzureFoundryConfigured; // drop-in backward compat
 export const DEFAULT_AI_MODEL = DEFAULT_AZURE_MODEL;
+
 

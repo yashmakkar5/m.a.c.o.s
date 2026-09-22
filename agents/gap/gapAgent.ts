@@ -1,4 +1,5 @@
-import { generateStructuredJson } from "@/lib/ai/geminiClient";
+import { generateStructuredJson, AZURE_FOUNDRY_AGENTS } from "@/lib/ai/foundryClient";
+
 import {
   CandidateProfile,
   CareerTrajectoryOutput,
@@ -70,6 +71,7 @@ Execute the comparative analysis and return the structured GapAnalysisOutput con
 `.trim();
 
   return await generateStructuredJson<GapAnalysisOutput>({
+    agent: AZURE_FOUNDRY_AGENTS.gap,
     systemInstruction: GAP_AGENT_SYSTEM_PROMPT,
     prompt,
     schema: GapAnalysisOutputSchema,

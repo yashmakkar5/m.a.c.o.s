@@ -1,4 +1,5 @@
-import { generateStructuredJson } from "@/lib/ai/geminiClient";
+import { generateStructuredJson } from "@/lib/ai/foundryClient";
+
 import { CandidateProfile, CandidateProfileSchema } from "@/types";
 
 const PROFILE_EXTRACTOR_SYSTEM_PROMPT = `

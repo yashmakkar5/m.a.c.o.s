@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAnalysisRecordById } from "@/lib/supabase/analysisRepository";
-import { generateChatResponse } from "@/lib/ai/geminiClient";
+import { generateChatResponse } from "@/lib/ai/foundryClient";
+
 
 export const maxDuration = 60; // 60 seconds for Vercel functions
 

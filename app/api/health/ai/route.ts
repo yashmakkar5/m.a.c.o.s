@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { isAzureFoundryConfigured, pingAzureFoundry, DEFAULT_AZURE_MODEL } from "@/lib/ai/azureFoundry";
+import {
+  isAzureFoundryConfigured,
+  pingAzureFoundry,
+  DEFAULT_AZURE_MODEL,
+  AZURE_FOUNDRY_AGENTS,
+} from "@/lib/ai/azureFoundry";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +16,7 @@ export async function GET() {
         provider: "Azure AI Foundry (AI-103)",
         status: "not_configured",
         model: DEFAULT_AZURE_MODEL,
+        agents: AZURE_FOUNDRY_AGENTS,
         error: "Azure AI Foundry authentication failed: AZURE_AI_FOUNDRY_API_KEY is not configured.",
       },
       { status: 503 }
@@ -26,6 +32,7 @@ export async function GET() {
       status: "ok",
       model: result.model,
       latencyMs: result.latencyMs,
+      agents: AZURE_FOUNDRY_AGENTS,
     });
   }
 
@@ -35,8 +42,10 @@ export async function GET() {
       provider: "Azure AI Foundry (AI-103)",
       status: "error",
       model: result.model,
+      agents: AZURE_FOUNDRY_AGENTS,
       error: result.error || "Failed to communicate with Azure AI Foundry API.",
     },
     { status: 502 }
   );
 }
+

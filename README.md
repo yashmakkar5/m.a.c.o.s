@@ -30,7 +30,7 @@ Rather than telling candidates to mimic a famous celebrity, M.A.C.O.S. mines mac
                                               v
                                   +-----------------------+
                                   |  Profile Extraction   |
-                                  |  (Gemini + Zod Schema)|
+                                  | (Azure Foundry + Zod) |
                                   +-----------------------+
                                               |
                                               v
@@ -80,7 +80,7 @@ $$\text{LEARN} \longrightarrow \text{BUILD} \longrightarrow \text{DEMONSTRATE} \
 ## 🛠️ Technology Stack
 
 - **Frontend**: Next.js 16 (App Router, Turbopack), React 19, Tailwind CSS v4, shadcn/ui (`@base-ui` primitives, `lucide-react`).
-- **AI & Orchestration**: Google Gemini API (`@google/genai`), Zod schema validation, explicit modular agent pipeline.
+- **AI & Orchestration**: Microsoft Azure AI Foundry (`gpt-4o`), Cloud Agent Service (AI-103), Zod schema validation, explicit modular agent pipeline.
 - **Document Parsing**: `unpdf` (zero-dependency modern PDF extraction), `mammoth` (DOCX extraction).
 - **Database & Persistence**: Supabase PostgreSQL with resilient in-memory fallback for local development.
 - **Deployment**: Vercel-ready serverless architecture.
@@ -96,17 +96,19 @@ d:/mac os/
 │   ├── page.tsx               # Landing page with hero & methodology
 │   ├── analyze/page.tsx       # Resume upload, destination inputs & live progress
 │   ├── results/[id]/page.tsx  # Interactive Career Map results
+│   ├── debug/page.tsx         # System Diagnostics & Azure AI Foundry Cloud Agent Hub
 │   └── api/
 │       ├── analyze/route.ts   # POST: Resume upload, parsing & orchestrator
 │       ├── analyze/[id]/route.ts # GET: Fetch analysis record by ID
-│       └── chat/route.ts      # POST: Context-grounded "Ask M.A.C.O.S." chat
+│       ├── chat/route.ts      # POST: Context-grounded "Ask Placey" chat
+│       └── health/ai/route.ts # GET: Live Azure AI Foundry ping & agent catalog
 ├── agents/
 │   ├── profile/profileAgent.ts      # Structured candidate profile extraction
-│   ├── skills/skillsAgent.ts        # Verified capabilities vs unproven claims
-│   ├── market/marketAgent.ts        # Industry requirements synthesis
-│   ├── trajectory/trajectoryAgent.ts# Macro career trajectory pattern miner
-│   ├── gap/gapAgent.ts              # Triple triangulation gap detection
-│   ├── pathway/pathwayAgent.ts      # 4-stage milestone generator
+│   ├── skills/skillsAgent.ts        # Skills Discovery Cloud Agent runner
+│   ├── market/marketAgent.ts        # Market Intelligence Cloud Agent runner
+│   ├── trajectory/trajectoryAgent.ts# Career Trajectory Cloud Agent runner
+│   ├── gap/gapAgent.ts              # Triple-triangulation Gap Analysis Cloud Agent runner
+│   ├── pathway/pathwayAgent.ts      # 4-stage Pathway Architect Cloud Agent runner
 │   └── orchestrator/careerOrchestrator.ts # Multi-agent workflow coordination
 ├── components/
 │   ├── navigation/Navbar.tsx        # Responsive branded navigation bar
@@ -114,9 +116,11 @@ d:/mac os/
 │   │   ├── TrajectoryVisualizer.tsx # Macro trajectory stages & transition catalysts
 │   │   ├── GapCard.tsx              # Triple-triangulation gap visualizer
 │   │   └── PathwayTimeline.tsx      # Interactive LEARN/BUILD/DEMO/REASSESS timeline
-│   └── chat/AskMacOsDrawer.tsx      # Grounded conversational assistant drawer
+│   └── chat/AskMacOsDrawer.tsx      # Grounded conversational assistant drawer ("Ask Placey")
 ├── lib/
-│   ├── ai/geminiClient.ts           # Gemini SDK client with retry & JSON validation
+│   ├── ai/
+│   │   ├── azureFoundry.ts          # Azure AI Foundry client, agent catalog & retry engine
+│   │   └── foundryClient.ts         # Unified Azure AI Foundry export
 │   ├── parsing/resumeParser.ts      # PDF and DOCX validator and text extractor
 │   ├── research/researchProvider.ts # Isolated research provider abstraction
 │   ├── supabase/
@@ -127,6 +131,7 @@ d:/mac os/
 │   └── migrations/20260902_create_analyses.sql # Database migration
 ├── types/index.ts             # Strict TypeScript domain types & Zod schemas
 ├── BUILD_STATUS.md            # Milestone execution status & verification log
+├── AI_SETUP.md                # Azure AI Foundry setup & Cloud Agent catalog
 └── .env.example               # Environment variables template
 ```
 
@@ -143,16 +148,39 @@ cp .env.example .env.local
 Configure the following variables:
 
 ```env
-# Required for real AI agent orchestration & grounded chat:
-GEMINI_API_KEY=your_gemini_api_key
+# AI Provider: Microsoft Azure AI Foundry (AI-103)
+AI_PROVIDER=azure_foundry
+AZURE_AI_FOUNDRY_ENDPOINT=https://yashplacey-resource.services.ai.azure.com/openai/v1
+AZURE_OPENAI_ENDPOINT=https://yashplacey-resource.openai.azure.com/openai/v1
+AZURE_AI_FOUNDRY_API_KEY=your_key_here
+AZURE_AI_FOUNDRY_MODEL=gpt-4o
 
-# Optional model override (defaults to gemini-2.5-flash):
-GEMINI_MODEL=gemini-2.5-flash
+# Azure AI Foundry Project Endpoint & Registered Cloud Agents
+AZURE_AI_PROJECT_ENDPOINT=https://yashplacey-resource.services.ai.azure.com/api/projects/yashplacey
+AZURE_AGENT_SKILLS_NAME=SkillsDiscoveryAgent
+AZURE_AGENT_SKILLS_VERSION=4
+AZURE_AGENT_SKILLS_ID=20799820-18dc-4f50-9571-2dd73c2c251c
 
-# Required for Supabase PostgreSQL persistence (app falls back to memory if unset):
+AZURE_AGENT_MARKET_NAME=marketIntelligenceAgent
+AZURE_AGENT_MARKET_VERSION=2
+AZURE_AGENT_MARKET_ID=8d3095f3-b568-4252-b92a-7efd308674f8
+
+AZURE_AGENT_TRAJECTORY_NAME=careerTrajectoryIntelligenceAgent
+AZURE_AGENT_TRAJECTORY_VERSION=2
+AZURE_AGENT_TRAJECTORY_ID=c8166b1b-5cf8-4621-909f-c96e6a943577
+
+AZURE_AGENT_GAP_NAME=gapAnalysisSpecialist
+AZURE_AGENT_GAP_VERSION=2
+AZURE_AGENT_GAP_ID=1ff16921-114c-4335-96b9-0cd5da8958c8
+
+AZURE_AGENT_PATHWAY_NAME=pathwayArchitectAgent
+AZURE_AGENT_PATHWAY_VERSION=2
+AZURE_AGENT_PATHWAY_ID=6c1a05e7-fe9b-4d7c-b1a9-93c0913832e1
+
+# Database: Supabase PostgreSQL
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
 > **Security Note**: Never commit `.env.local` or paste credentials into source files. All AI calls and database mutations happen server-side.
@@ -223,7 +251,10 @@ npm run build
 1. Push your repository to GitHub.
 2. Import the project into the [Vercel Dashboard](https://vercel.com).
 3. Under **Settings → Environment Variables**, add:
-   - `GEMINI_API_KEY`
+   - `AZURE_AI_FOUNDRY_API_KEY`
+   - `AZURE_AI_FOUNDRY_ENDPOINT`
+   - `AZURE_AI_FOUNDRY_MODEL`
+   - `AZURE_AI_PROJECT_ENDPOINT`
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`

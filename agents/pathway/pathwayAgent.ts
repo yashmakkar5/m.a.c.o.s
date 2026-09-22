@@ -1,4 +1,5 @@
-import { generateStructuredJson } from "@/lib/ai/geminiClient";
+import { generateStructuredJson, AZURE_FOUNDRY_AGENTS } from "@/lib/ai/foundryClient";
+
 import {
   CandidateProfile,
   GapAnalysisOutput,
@@ -54,6 +55,7 @@ Generate the structured PathwayOutput containing LEARN, BUILD, DEMONSTRATE, and 
 `.trim();
 
   return await generateStructuredJson<PathwayOutput>({
+    agent: AZURE_FOUNDRY_AGENTS.pathway,
     systemInstruction: PATHWAY_AGENT_SYSTEM_PROMPT,
     prompt,
     schema: PathwayOutputSchema,

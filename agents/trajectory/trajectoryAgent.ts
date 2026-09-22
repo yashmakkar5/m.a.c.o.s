@@ -1,4 +1,5 @@
-import { generateStructuredJson } from "@/lib/ai/geminiClient";
+import { generateStructuredJson, AZURE_FOUNDRY_AGENTS } from "@/lib/ai/foundryClient";
+
 import { getResearchProvider } from "@/lib/research/researchProvider";
 import {
   CandidateProfile,
@@ -100,6 +101,7 @@ INSTRUCTIONS:
 `.trim();
 
   const output = await generateStructuredJson<CareerTrajectoryOutput>({
+    agent: AZURE_FOUNDRY_AGENTS.trajectory,
     systemInstruction: TRAJECTORY_AGENT_SYSTEM_PROMPT,
     prompt,
     schema: CareerTrajectoryOutputSchema,

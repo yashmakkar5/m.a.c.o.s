@@ -46,7 +46,7 @@ export default function ResultsPlaceholderPage() {
               Career Map Pipeline Active & Connected
             </h3>
             <p className="text-[#d5d0dd] leading-relaxed">
-              When you submit your resume and target role at <code className="font-mono bg-black/40 px-2 py-0.5 rounded border border-white/10 text-white">/analyze</code>, the orchestrator executes real Gemini agents and redirects directly to your unique, permanent Career Map.
+              When you submit your resume and target role at <code className="font-mono bg-black/40 px-2 py-0.5 rounded border border-white/10 text-white">/analyze</code>, the orchestrator executes real Azure AI Foundry cloud agents and redirects directly to your unique, permanent Career Map.
             </p>
           </div>
         </div>

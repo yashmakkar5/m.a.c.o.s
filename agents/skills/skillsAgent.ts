@@ -1,4 +1,5 @@
-import { generateStructuredJson } from "@/lib/ai/geminiClient";
+import { generateStructuredJson, AZURE_FOUNDRY_AGENTS } from "@/lib/ai/foundryClient";
+
 import {
   CandidateProfile,
   SkillsDiscoveryOutput,
@@ -109,8 +110,10 @@ INSTRUCTIONS:
 `.trim();
 
   return await generateStructuredJson<SkillsDiscoveryOutput>({
+    agent: AZURE_FOUNDRY_AGENTS.skills,
     systemInstruction: SKILLS_DISCOVERY_SYSTEM_PROMPT,
     prompt,
     schema: SkillsDiscoveryOutputSchema,
   });
+
 }

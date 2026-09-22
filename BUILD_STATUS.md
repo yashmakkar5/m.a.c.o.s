@@ -4,7 +4,7 @@
 - **Name**: M.A.C.O.S. (My Adaptive Career Orchestration System)
 - **Tagline**: Don't just match to a job. Navigate to a career.
 - **Philosophy**: Different starting points → personalised pathways. Focus on demonstrated capability and evidence rather than institutional pedigree.
-- **Tech Stack**: Next.js 16 (App Router, Turbopack), React 19, TypeScript (Strict), Tailwind CSS v4, shadcn/ui, Gemini API (`@google/genai`), Supabase PostgreSQL, Mammoth, Unpdf, Zod.
+- **Tech Stack**: Next.js 16 (App Router, Turbopack), React 19, TypeScript (Strict), Tailwind CSS v4, shadcn/ui, Microsoft Azure AI Foundry (`gpt-4o`), Supabase PostgreSQL, Mammoth, Unpdf, Zod.
 
 ---
 
@@ -14,7 +14,7 @@
 | :--- | :--- | :--- | :--- |
 | **M1** | Application Foundation + UI Scaffolding | **COMPLETED** | Responsive Navbar, Landing page (`/`), Input page (`/analyze`), Results page (`/results/[id]`) with Tailwind v4 & shadcn |
 | **M2** | Real Resume Upload + Text Extraction | **COMPLETED** | `resumeParser.ts` supporting .pdf (`unpdf`) & .docx (`mammoth`) with MIME and size validation (5MB). Tested in `scripts/test-parser.mjs` |
-| **M3** | Gemini Integration + Structured Profile Agent | **COMPLETED** | `geminiClient.ts` with Zod validation, retry handling, and `profileAgent.ts` extracting demonstrated capabilities vs missing claims |
+| **M3** | Azure AI Foundry + Cloud Agents Integration | **COMPLETED** | `azureFoundry.ts` / `foundryClient.ts` with Zod validation, retry handling, and 5 registered Azure AI Foundry Cloud Agents (AI-103) |
 | **M4** | Supabase Database + Persistence | **COMPLETED** | `supabase/migrations/20260902_create_analyses.sql` created; `analysisRepository.ts` supporting Supabase PostgreSQL with in-memory resilient fallback |
 | **M5** | Skills Discovery Agent | **COMPLETED** | `skillsAgent.ts` evaluating demonstrated capabilities vs unverified claims with confidence metrics |
 | **M6** | Market Intelligence Agent | **COMPLETED** | `marketAgent.ts` with isolated `researchProvider.ts` abstraction (controlled prototype benchmark + live search hook) |

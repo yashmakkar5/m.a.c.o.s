@@ -1,9 +1,11 @@
-import { extractCandidateProfile } from "../profile/profileAgent";
-import { runSkillsDiscoveryAgent } from "../skills/skillsAgent";
-import { runMarketIntelligenceAgent } from "../market/marketAgent";
-import { runCareerTrajectoryAgent } from "../trajectory/trajectoryAgent";
-import { runGapAnalysisAgent } from "../gap/gapAgent";
-import { runPathwayAgent } from "../pathway/pathwayAgent";
+import {
+  extractCandidateProfile,
+  runSkillsDiscoveryAgent,
+  runMarketIntelligenceAgent,
+  runCareerTrajectoryAgent,
+  runGapAnalysisAgent,
+  runPathwayAgent,
+} from "@/lib/ai/foundryAgentRunner";
 import {
   createAnalysisRecord,
   updateAnalysisRecord,

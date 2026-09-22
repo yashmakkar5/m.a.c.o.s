@@ -154,10 +154,17 @@ export async function generateAzureFoundryStructuredJson<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const messages: Array<{ role: "system" | "user"; content: string }> = [];
+      const agentHeader = options.agent
+        ? `[Azure AI Foundry Agent: ${options.agent.name} (v${options.agent.version}) | ID: ${options.agent.id || "N/A"}]`
+        : null;
+
       const systemPrompt = [
+        agentHeader,
         options.systemInstruction || "You are an expert AI agent that returns strictly structured JSON matching the requested schema.",
         "CRITICAL: Your response must be 100% valid JSON without markdown code blocks, conversational greetings, or commentary. Return ONLY the JSON object.",
-      ].join("\n\n");
+      ]
+        .filter(Boolean)
+        .join("\n\n");
 
       messages.push({ role: "system", content: systemPrompt });
       messages.push({ role: "user", content: currentPrompt });
@@ -167,18 +174,8 @@ export async function generateAzureFoundryStructuredJson<T>(
         response_format: { type: "json_object" },
         temperature: options.temperature ?? 0.1,
         messages,
+        ...(options.agent?.id ? { user: `agent-${options.agent.name}` } : {}),
       };
-
-      if (options.agent) {
-        requestBody.extra_body = {
-          agent_reference: {
-            name: options.agent.name,
-            version: options.agent.version,
-            type: "agent_reference",
-            id: options.agent.id,
-          },
-        };
-      }
 
       const res = await fetch(`${endpoint}/chat/completions`, {
         method: "POST",

@@ -3,7 +3,7 @@ import { generateStructuredJson } from "@/lib/ai/foundryClient";
 import { CandidateProfile, CandidateProfileSchema } from "@/types";
 
 const PROFILE_EXTRACTOR_SYSTEM_PROMPT = `
-You are the Profile Extraction Specialist for M.A.C.O.S. (My Adaptive Career Orchestration System).
+You are the Profile Extraction Specialist for Placey (M.A.C.O.S.).
 Your objective is to ingest raw candidate resume text along with their target career ambitions, and extract an objective, strictly accurate structured profile.
 
 CRITICAL RULES:
@@ -13,7 +13,8 @@ CRITICAL RULES:
    - "skills" & "technologies": Specific tools, languages, and competencies mentioned.
    - "evidence": Specific artifacts, links, metrics, or tangible project outputs.
 3. EXPLICITLY IDENTIFY MISSING INFORMATION in the "missingInformation" array (e.g., "Missing metrics for project impacts", "No verifiable link provided for DevFlow project", "No stated proficiency in cloud deployment").
-4. Return strictly valid JSON adhering to the CandidateProfile schema.
+4. Strictly do not assume or insert any SAP references unless explicitly written in the user's resume text.
+5. Return strictly valid JSON adhering to the CandidateProfile schema.
 `.trim();
 
 export interface ExtractProfileParams {

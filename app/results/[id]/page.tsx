@@ -34,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { AnalysisRecord, CanonicalAnalysis } from "@/types";
 import { buildCanonicalAnalysis } from "@/lib/analysis/canonicalNormalizer";
 import { AskMacOsDrawer } from "@/components/chat/AskMacOsDrawer";
-import { SapWorkforceStrategyModal } from "@/components/enterprise/SapWorkforceStrategyModal";
+
 import {
   PersonalizePathBar,
   ConstraintFilterId,
@@ -64,8 +64,8 @@ export default function ResultsPage({
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("snapshot");
-  const [isSapModalOpen, setIsSapModalOpen] = useState(false);
   const [activeConstraint, setActiveConstraint] = useState<ConstraintFilterId>("all");
+
 
   // Contextual Chat states
   const [selectedFocusItem, setSelectedFocusItem] = useState<string | undefined>(undefined);
@@ -262,18 +262,6 @@ export default function ResultsPage({
                 </div>
               </div>
 
-              <Button
-                onClick={() => setIsSapModalOpen(true)}
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-1.5 rounded-full border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 hover:text-white text-xs h-10 px-3.5 font-bold transition-all hover:scale-105 active:scale-95 shadow-sm"
-              >
-                <Globe className="h-3.5 w-3.5 text-blue-400" />
-                <span>SAP Strategy</span>
-                <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[9px] font-mono text-blue-200 uppercase">
-                  Vision
-                </span>
-              </Button>
 
               <Button
                 onClick={() => {
@@ -1319,14 +1307,6 @@ export default function ResultsPage({
         activeSection={activeTab}
         focusedItem={selectedFocusItem}
         initialQuestion={chatInitialQuestion}
-      />
-
-      {/* SAP WORKFORCE STRATEGY & ENTERPRISE VISION MODAL */}
-      <SapWorkforceStrategyModal
-        isOpen={isSapModalOpen}
-        onClose={() => setIsSapModalOpen(false)}
-        candidateName={candidate.fullName}
-        targetRole={destination.role}
       />
     </div>
   );

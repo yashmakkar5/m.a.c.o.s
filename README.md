@@ -266,12 +266,5 @@ npm run build
 
 If no external live search API (e.g. Tavily/Search Grounding) is configured in the environment, M.A.C.O.S. uses an isolated `researchProvider` abstraction that serves structured, verified benchmark data. The UI transparently indicates **"Controlled Research Data"** to ensure complete honesty without fabricating live web sources.
 
----
 
-## 🔮 Future SAP Ecosystem Integration
 
-M.A.C.O.S. is architected with clear boundaries to enable future integration with the SAP workforce and AI ecosystem:
-- **SAP SuccessFactors**: Syncing skills discovery and personalized pathway milestones with internal career mobility and talent development profiles.
-- **SAP HANA Cloud**: Vector-based semantic similarity search across millions of verified internal enterprise career trajectories and job architectures.
-- **SAP AI Launchpad**: Enterprise-governed multi-agent orchestration and compliance monitoring.
-- **SAP Build Work Zone**: Embedding the interactive Career Map and "Ask M.A.C.O.S." drawer as a native workforce widget.

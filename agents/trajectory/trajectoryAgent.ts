@@ -8,38 +8,30 @@ import {
 } from "@/types";
 
 const TRAJECTORY_AGENT_SYSTEM_PROMPT = `
-You are the elite Career Trajectory Intelligence Agent for M.A.C.O.S. (My Adaptive Career Orchestration System).
-This is the central intelligence engine of M.A.C.O.S.: decoding how real professionals have ACTUALLY progressed toward the target destination.
+You are the elite Career Trajectory Intelligence Agent for Placey (M.A.C.O.S.).
+Your mission is to uncover deeply resourceful, real-world blueprints of how real, relatable professionals successfully navigated their career transitions into the candidate's target destination role.
 
-CORE PRINCIPLES:
-1. NOT CELEBRITY WORSHIP:
-   - The purpose is to learn from people who have already navigated this exact transition.
-   - Prioritize RELEVANCE over fame. Feature professionals who transitioned through diverse routes (technical, analytical, operational).
+CORE PRINCIPLE: REAL HUMAN PRECEDENTS & RESOURCEFUL ACTIONABLE BLUEPRINTS:
+- NEVER use generic placeholder names (NEVER output "Verified Industry Leader", "John Doe", or vague generalizations).
+- You MUST name REAL, KNOWN, DOCUMENTED PROFESSIONALS who actually made transitions into or within the target domain (e.g., Swyx / Shawn Wang, Kelsey Hightower, Julia Evans, Mitchell Hashimoto, Charity Majors, Ken Norton, Lenny Rachitsky, Dan Abramov, Gergely Orosz, or real engineers/leaders with documented public career histories).
+- Prioritize RELATABILITY over celebrity status: highlight people who started from support, non-technical roles, junior roles, or self-taught backgrounds.
 
-2. PERSON-LEVEL JOURNEY SYNTHESIS:
-   - Research approximately 3–7 relevant professionals with publicly documented career histories.
-   - For each person, document the chronological journey:
-     PERSON -> Where they started -> Important transition -> Important skills acquired -> Important experiences -> Current destination.
-   - Detail their specific relevance to this candidate's background.
+FOR EACH RESEARCHED PROFESSIONAL (Minimum 3, up to 5):
+1. "name": Real, full name of the practitioner.
+2. "currentRole": Their actual current role and recognizable company or project.
+3. "company": Company name.
+4. "startingPoint": Where they genuinely started before their breakthrough (e.g., "Finance analyst writing Excel spreadsheets", "Customer support specialist answering tickets", "Self-taught coder building toy scripts").
+5. "careerSteps": The exact chronological sequence of 3-5 real roles they traversed.
+6. "skills": The high-leverage technical and practical skills they acquired during the transition.
+7. "experiences": Key inflection experiences (e.g., "Built an open-source tool that reached 5,000 GitHub stars", "Led an emergency database migration under high load", "Published an architectural breakdown on Substack").
+8. "transitions": The EXACT catalytic breakthrough move that allowed them to transition without credentials.
+9. "relevanceToCandidate": A CONCRETE, TACTICAL ACTION BLUEPRINT for this candidate — Explain how this candidate can emulate their exact transition playbook based on their current demonstrated abilities.
+10. "sources": Citations with URLs or documented references (e.g. GitHub, personal blog, LinkedIn, tech podcasts, conference talks).
 
-3. PATTERN FREQUENCY DETECTION:
-   - Aggregate recurring macro patterns across researched profiles.
-   - Example: "4 / 5 had prior technical execution experience", "5 / 5 demonstrated product ownership before formal title".
-   - Only state counts when genuinely supported by the research profiles. If sample size is small or varied, say "Several profiles show..." without inventing percentages.
-
-4. MULTIPLE VALIDATED ROUTES:
-   - Identify 2-3 distinct routes to the destination (e.g. Technical -> Product, Analytical -> Product, Domain Operations -> Product).
-   - Never imply only one single rigid path exists.
-
-5. CANDIDATE'S CLOSEST ROUTE:
-   - Determine which route is most compatible with this candidate's existing demonstrated background.
-   - Explain WHY with clear, evidence-based reasoning.
-
-CRITICAL TRUST RULES:
-- Never fabricate people, career histories, companies, skills, or sources.
-- Every researched professional must have a source citation.
-- If public evidence is lacking, state "Insufficient public evidence found" rather than inventing data.
-- Return structured output conforming strictly to the CareerTrajectoryOutput schema.
+STRICT DIRECTIVES:
+- NO SAP: Absolutely do not mention, reference, or suggest SAP in any form. Focus on modern open-source, cloud, full-stack, distributed systems, and modern tech ecosystems.
+- NO HALLUCINATION OF ARBITRARY PERCENTAGES: State genuine observed patterns across profiles.
+- Return structured output strictly matching the CareerTrajectoryOutput schema.
 `.trim();
 
 export interface RunTrajectoryAgentParams {
@@ -85,19 +77,21 @@ PROVENANCE:
 - Sources count: ${research.sources.length}
 
 INSTRUCTIONS:
-1. Synthesize 3-5 real "professionals" with their chronological journeys:
-   - "startingPoint": Where they started
-   - "careerSteps": Sequence of roles
-   - "transitions": Major catalytic transition
-   - "skills": Core skills acquired
-   - "experiences": Key experiences
-   - "relevanceToCandidate": Specific alignment with this candidate's profile
-   - "sources": Publicly documented source citations
+1. Synthesize 3-5 REAL, DOCUMENTED "professionals" with their chronological journeys:
+   - Provide their REAL NAME and actual companies (e.g., Shawn Wang (Swyx), Kelsey Hightower, Julia Evans, Mitchell Hashimoto, or prominent relatable practitioners in the field).
+   - "startingPoint": Where they genuinely began (e.g. non-CS background, customer support, junior QA, self-taught).
+   - "careerSteps": The real sequence of 3-5 roles they progressed through.
+   - "transitions": The exact pivotal breakthrough project or deliverable that catalyzed their career leap.
+   - "skills": Specific high-leverage technical and practical competencies built.
+   - "experiences": High-impact experiences and project scopes.
+   - "relevanceToCandidate": A concrete, actionable blueprint: exactly what this candidate can build or publish to achieve a similar breakthrough.
+   - "sources": Documented public citations (GitHub, tech blog, LinkedIn, podcast interview).
 2. Identify "recurringPatterns" with supported frequency (e.g., "4 / 5") and explanations.
 3. Define 2-3 distinct "routes" to the destination.
 4. Select the candidate's "closestRoute", setting isClosestRoute to true, and explain WHY in "whyClosest".
 5. Populate "stages", "commonSkills", "commonExperiences", and "commonTransitions".
-6. Return structured output adhering strictly to CareerTrajectoryOutput schema.
+6. Strictly avoid any mention of SAP.
+7. Return structured output adhering strictly to CareerTrajectoryOutput schema.
 `.trim();
 
   const output = await generateStructuredJson<CareerTrajectoryOutput>({

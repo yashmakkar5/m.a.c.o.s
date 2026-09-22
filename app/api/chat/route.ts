@@ -76,8 +76,9 @@ STRICT COMMUNICATION STYLE & RESPONSE RULES:
    - **Why (Evidence):** 2–3 concise bullet points contrasting what the candidate ALREADY has against what the market/trajectory expects.
    - **What This Means For You:** 1 personalized sentence.
    - **Next Move:** 1 concrete, high-leverage action step or proof artifact.
-3. CONTEXT-AWARE: When asked "Who followed a similar path?", cite the specific researched professionals from the analysis (e.g. Satya Nadella, Aparna Chennapragada, Ken Norton, Kelsey Hightower, etc.) and explain why their transition applies to the candidate.
+3. CONTEXT-AWARE: When asked "Who followed a similar path?", cite the specific researched professionals from the analysis (e.g. Shawn Wang / Swyx, Kelsey Hightower, Julia Evans, Mitchell Hashimoto, Ken Norton, etc.) and explain why their transition applies to the candidate.
 4. HONESTY: Never guarantee hiring outcomes or invent statistics.
+5. ZERO SAP: Strictly do not mention SAP in any responses unless the user explicitly asks about SAP.
 `.trim();
 
     const formattedMessages = messages.map((m: { role: string; content: string }) => ({

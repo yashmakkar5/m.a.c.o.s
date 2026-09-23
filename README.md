@@ -1,270 +1,83 @@
-# M.A.C.O.S. (My Adaptive Career Orchestration System)
+# Placey-macos2
 
-> **"Don't just match to a job. Navigate to a career."**
+## Team Members
+- **Yash Makkar** (yashmakkar5) – Project Lead / Developer
 
-M.A.C.O.S. is an AI-powered Career Navigation platform that connects where a professional is, where they want to go, and the evidence-first path between them.
+## Problem Statement
+The goal is to build a truly dynamic, multi‑agent career intelligence platform that **researches** a user’s concrete goal in real time rather than relying on hard‑coded, generic recommendations. Existing implementations returned static figures (e.g., “Learn from Satya Nadella”), which defeats the purpose of personalized career pathways.
 
----
+## Solution Overview
+Placey‑macos2 orchestrates a pipeline of specialized AI agents (Goal Intent, Skill Discovery, Research, People, Gap Analysis, Roadmap, Resources, Synthesis, Validation) powered by Azure AI Foundry. Each agent consumes the prior step’s structured output, enabling a **feedback‑driven, end‑to‑end workflow** that produces a tailored career trajectory, gap‑analysis, and actionable roadmap.
 
-## 🧭 Product Vision & Philosophy
-
-Career information today is fragmented. Professionals with private mentors, alumni networks, and institutional pedigree frequently access hidden knowledge about how transitions happen. For candidates from Tier-2/Tier-3 institutions, career switchers, and non-traditional backgrounds, this lack of transparency creates an artificial barrier.
-
-M.A.C.O.S. replaces guesswork and pedigree bias with **demonstrated proof-of-work** and **Career Trajectory Intelligence**.
-
-### Core Differentiator: Career Trajectory Intelligence
-Rather than telling candidates to mimic a famous celebrity, M.A.C.O.S. mines macro transition patterns across relevant public professional career trajectories:
-- **Recurring Trajectory Stages**: Understanding the intermediate milestones professionals navigated.
-- **Transition Catalysts**: Discovering the exact proof-of-work that enabled transitions from one scope to another.
-- **Evidence Patterns**: Identifying the specific portfolio artifacts, code, and case studies that unlock hiring confidence.
-
----
-
-## 🏛️ Multi-Agent Orchestration Architecture
-
+## Architecture / Data Flow
+```mermaid
+flowchart TD
+    Resume[Resume Input] --> GoalIntent[Goal Intent Agent]
+    GoalIntent --> SkillDiscovery[Skill Discovery Agent]
+    SkillDiscovery --> Research[Market Research Agent]
+    Research --> People[People Agent]
+    People --> Gap[Gap Analysis Agent]
+    Gap --> Roadmap[Roadmap Agent]
+    Roadmap --> Resources[Resource Agent]
+    Resources --> Synthesis[Synthesis Agent]
+    Synthesis --> Validation[Validation Agent]
+    Validation --> Persistence[Persistence Layer]
 ```
-                                  +-----------------------+
-                                  | User Resume + Target  |
-                                  +-----------------------+
-                                              |
-                                              v
-                                  +-----------------------+
-                                  |  Profile Extraction   |
-                                  | (Azure Foundry + Zod) |
-                                  +-----------------------+
-                                              |
-                                              v
-                                  +-----------------------+
-                                  |   Skills Discovery    |
-                                  | (Demonstrated vs Claim)|
-                                  +-----------------------+
-                                              |
-                       +----------------------+----------------------+
-                       |                                             |
-                       v                                             v
-        +----------------------------+                +----------------------------+
-        |    Market Intelligence     |                |    Career Trajectory       |
-        | (Current Industry Demands) |                | (Macro Progression Mining) |
-        +----------------------------+                +----------------------------+
-                       |                                             |
-                       +----------------------+----------------------+
-                                              |
-                                              v
-                                  +-----------------------+
-                                  |     Gap Analysis      |
-                                  | (Triple Triangulation)|
-                                  +-----------------------+
-                                              |
-                                              v
-                                  +-----------------------+
-                                  |    Pathway Architect  |
-                                  | (LEARN/BUILD/DEMO/RE) |
-                                  +-----------------------+
-                                              |
-                                              v
-                                  +-----------------------+
-                                  |   Career Map & Chat   |
-                                  |  ("Ask M.A.C.O.S.")   |
-                                  +-----------------------+
-```
+The diagram above illustrates the sequential data flow where each node emits a **Zod‑validated** schema consumed by the next.
 
-### The 4-Stage Action Methodology:
-$$\text{LEARN} \longrightarrow \text{BUILD} \longrightarrow \text{DEMONSTRATE} \longrightarrow \text{REASSESS}$$
-1. **LEARN**: Tactical conceptual study targeting critical foundational gaps.
-2. **BUILD**: Hands-on proof-of-work projects, architectures, and case studies.
-3. **DEMONSTRATE**: Public deployments, open-source PRs, and verifiable metrics.
-4. **REASSESS**: Periodic readiness re-evaluations and milestone reviews.
+## Technology Stack
+- **Framework**: Next.js 16 (TurboPack) – custom agent file handling as per `AGENTS.md`.
+- **Language**: TypeScript (strict mode) with **Zod** for runtime schema validation.
+- **AI Services**: Azure AI Foundry – `gpt‑4o` (reasoning tier) via `ModelRouter.invokeStructured`.
+- **Backend**: Supabase (PostgreSQL) for persistence of analysis records.
+- **Version Control**: Git + GitHub.
+- **Build / Test**: Node.js (v20), `npm ci`, TypeScript compiler (`npx tsc --noEmit`).
 
----
+## Setup Instructions
+1. **Clone the repository** (if not already local):
+   ```bash
+   git clone https://github.com/yashmakkar5/Placey-macos2.git
+   cd "Placey-macos2"
+   ```
+2. **Install dependencies**:
+   ```bash
+   npm ci
+   ```
+3. **Configure environment variables** (`.env.local`):
+   ```
+   AZURE_OPENAI_ENDPOINT=<your-azure-endpoint>
+   AZURE_OPENAI_API_KEY=<your-key>
+   SUPABASE_URL=<your-supabase-url>
+   SUPABASE_ANON_KEY=<your-supabase-key>
+   ```
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+5. **Run the verification script** (optional):
+   ```bash
+   npx ts-node scripts/verify-full-pipeline.ts
+   ```
 
-## 🛠️ Technology Stack
+## Testing & Results
+The repository includes `scripts/verify-full-pipeline.ts`, which exercises the full 10‑step agent pipeline on synthetic resumes (e.g., hospitality, AI research). After recent schema updates, the TypeScript compiler passes (`npx tsc --noEmit` returns exit 0). The script now reaches the Validation step, logging any remaining schema mismatches for further refinement.
 
-- **Frontend**: Next.js 16 (App Router, Turbopack), React 19, Tailwind CSS v4, shadcn/ui (`@base-ui` primitives, `lucide-react`).
-- **AI & Orchestration**: Microsoft Azure AI Foundry (`gpt-4o`), Cloud Agent Service (AI-103), Zod schema validation, explicit modular agent pipeline.
-- **Document Parsing**: `unpdf` (zero-dependency modern PDF extraction), `mammoth` (DOCX extraction).
-- **Database & Persistence**: Supabase PostgreSQL with resilient in-memory fallback for local development.
-- **Deployment**: Vercel-ready serverless architecture.
+## Known Limitations
+- **Schema brittleness**: AI model outputs sometimes deviate (e.g., strings vs arrays), requiring tolerant Zod unions.
+- **Model dependency**: Reliance on Azure AI Foundry; offline fallback not implemented.
+- **Test coverage**: Limited automated tests; verification script is manual.
+- **Credential management**: Secrets must be supplied via `.env.local` – no secret‑handling automation yet.
 
----
+## Future Improvements
+- Tighten schemas with **custom transformers** to auto‑normalize model responses.
+- Add **unit and integration tests** for each agent.
+- Implement **retry & fallback** strategies for inconsistent model outputs.
+- Introduce CI pipeline that runs the verification script on each push.
+- Expand **knowledge sources** (e.g., public APIs, job boards) for richer research.
 
-## 📁 Repository Structure
-
-```
-d:/mac os/
-├── app/
-│   ├── layout.tsx             # Root layout with navigation & fonts
-│   ├── page.tsx               # Landing page with hero & methodology
-│   ├── analyze/page.tsx       # Resume upload, destination inputs & live progress
-│   ├── results/[id]/page.tsx  # Interactive Career Map results
-│   ├── debug/page.tsx         # System Diagnostics & Azure AI Foundry Cloud Agent Hub
-│   └── api/
-│       ├── analyze/route.ts   # POST: Resume upload, parsing & orchestrator
-│       ├── analyze/[id]/route.ts # GET: Fetch analysis record by ID
-│       ├── chat/route.ts      # POST: Context-grounded "Ask Placey" chat
-│       └── health/ai/route.ts # GET: Live Azure AI Foundry ping & agent catalog
-├── agents/
-│   ├── profile/profileAgent.ts      # Structured candidate profile extraction
-│   ├── skills/skillsAgent.ts        # Skills Discovery Cloud Agent runner
-│   ├── market/marketAgent.ts        # Market Intelligence Cloud Agent runner
-│   ├── trajectory/trajectoryAgent.ts# Career Trajectory Cloud Agent runner
-│   ├── gap/gapAgent.ts              # Triple-triangulation Gap Analysis Cloud Agent runner
-│   ├── pathway/pathwayAgent.ts      # 4-stage Pathway Architect Cloud Agent runner
-│   └── orchestrator/careerOrchestrator.ts # Multi-agent workflow coordination
-├── components/
-│   ├── navigation/Navbar.tsx        # Responsive branded navigation bar
-│   ├── career/
-│   │   ├── TrajectoryVisualizer.tsx # Macro trajectory stages & transition catalysts
-│   │   ├── GapCard.tsx              # Triple-triangulation gap visualizer
-│   │   └── PathwayTimeline.tsx      # Interactive LEARN/BUILD/DEMO/REASSESS timeline
-│   └── chat/AskMacOsDrawer.tsx      # Grounded conversational assistant drawer ("Ask Placey")
-├── lib/
-│   ├── ai/
-│   │   ├── azureFoundry.ts          # Azure AI Foundry client, agent catalog & retry engine
-│   │   └── foundryClient.ts         # Unified Azure AI Foundry export
-│   ├── parsing/resumeParser.ts      # PDF and DOCX validator and text extractor
-│   ├── research/researchProvider.ts # Isolated research provider abstraction
-│   ├── supabase/
-│   │   ├── client.ts                # Supabase client initializer
-│   │   └── analysisRepository.ts    # Database persistence with in-memory fallback
-│   └── fixtures/syntheticResume.ts  # Fictional candidate profile for testing
-├── supabase/
-│   └── migrations/20260902_create_analyses.sql # Database migration
-├── types/index.ts             # Strict TypeScript domain types & Zod schemas
-├── BUILD_STATUS.md            # Milestone execution status & verification log
-├── AI_SETUP.md                # Azure AI Foundry setup & Cloud Agent catalog
-└── .env.example               # Environment variables template
-```
-
----
-
-## ⚙️ Environment Variables
-
-Create your local `.env.local` file from [.env.example](file:///.env.example):
-
-```bash
-cp .env.example .env.local
-```
-
-Configure the following variables:
-
-```env
-# AI Provider: Microsoft Azure AI Foundry (AI-103)
-AI_PROVIDER=azure_foundry
-AZURE_AI_FOUNDRY_ENDPOINT=https://yashplacey-resource.services.ai.azure.com/openai/v1
-AZURE_OPENAI_ENDPOINT=https://yashplacey-resource.openai.azure.com/openai/v1
-AZURE_AI_FOUNDRY_API_KEY=your_key_here
-AZURE_AI_FOUNDRY_MODEL=gpt-4o
-
-# Azure AI Foundry Project Endpoint & Registered Cloud Agents
-AZURE_AI_PROJECT_ENDPOINT=https://yashplacey-resource.services.ai.azure.com/api/projects/yashplacey
-AZURE_AGENT_SKILLS_NAME=SkillsDiscoveryAgent
-AZURE_AGENT_SKILLS_VERSION=4
-AZURE_AGENT_SKILLS_ID=20799820-18dc-4f50-9571-2dd73c2c251c
-
-AZURE_AGENT_MARKET_NAME=marketIntelligenceAgent
-AZURE_AGENT_MARKET_VERSION=2
-AZURE_AGENT_MARKET_ID=8d3095f3-b568-4252-b92a-7efd308674f8
-
-AZURE_AGENT_TRAJECTORY_NAME=careerTrajectoryIntelligenceAgent
-AZURE_AGENT_TRAJECTORY_VERSION=2
-AZURE_AGENT_TRAJECTORY_ID=c8166b1b-5cf8-4621-909f-c96e6a943577
-
-AZURE_AGENT_GAP_NAME=gapAnalysisSpecialist
-AZURE_AGENT_GAP_VERSION=2
-AZURE_AGENT_GAP_ID=1ff16921-114c-4335-96b9-0cd5da8958c8
-
-AZURE_AGENT_PATHWAY_NAME=pathwayArchitectAgent
-AZURE_AGENT_PATHWAY_VERSION=2
-AZURE_AGENT_PATHWAY_ID=6c1a05e7-fe9b-4d7c-b1a9-93c0913832e1
-
-# Database: Supabase PostgreSQL
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
-
-> **Security Note**: Never commit `.env.local` or paste credentials into source files. All AI calls and database mutations happen server-side.
-
----
-
-## 🗄️ Supabase PostgreSQL Setup
-
-1. Open your Supabase Dashboard and navigate to the **SQL Editor**.
-2. Run the migration script located in [supabase/migrations/20260902_create_analyses.sql](file:///supabase/migrations/20260902_create_analyses.sql).
-3. The migration sets up:
-   - The `analyses` table with typed JSONB columns for candidate profile, market intelligence, trajectories, gaps, and pathways.
-   - Row Level Security (RLS) policies allowing read/write operations for prototype usage.
-   - Performance indexes on `created_at` and `target_role`.
-
----
-
-## 🚀 Running Locally
-
-### 1. Install Dependencies
-```bash
-npm install
-```
-
-### 2. Start Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### 3. Verification & Build Quality Checks
-```bash
-# Validate TypeScript typings (strict mode)
-npx tsc --noEmit
-
-# Run ESLint validation
-npm run lint
-
-# Build production bundle with Turbopack
-npm run build
-```
-
----
-
-## 🧪 Testing the Complete Flow
-
-1. Open **[http://localhost:3000/analyze](http://localhost:3000/analyze)**.
-2. To test in 1 click without uploading your own file:
-   - Click **"Fill Sample Synthetic Profile"**.
-   - This loads verified synthetic data for *Alex Rivera*, a Frontend Engineer transitioning to *Technical Product Manager*.
-3. Alternatively, drag and drop any `.pdf` or `.docx` resume and enter your target role.
-4. Click **"Analyze My Career"**.
-5. Watch the real multi-agent pipeline execute across the stages:
-   - *Extracting Resume* → *Discovering Skills* → *Researching Market & Mining Trajectories* → *Triangulating Gaps* → *Architecting Pathway*.
-6. View the **Career Map**:
-   - Inspect the **Macro Career Trajectory Patterns** and transition catalysts.
-   - Review the **Triangulated Gap Map** (Candidate Evidence vs Market Demand vs Trajectory Signals).
-   - Explore the **4-Stage Action Pathway** (`LEARN` → `BUILD` → `DEMONSTRATE` → `REASSESS`).
-7. Open **"Ask M.A.C.O.S."** to ask context-grounded follow-up questions:
-   - *"Why is this my biggest gap?"*
-   - *"Why did you recommend this project?"*
-   - *"How can I improve my readiness score?"*
-
----
-
-## 🚢 Vercel Deployment Instructions
-
-1. Push your repository to GitHub.
-2. Import the project into the [Vercel Dashboard](https://vercel.com).
-3. Under **Settings → Environment Variables**, add:
-   - `AZURE_AI_FOUNDRY_API_KEY`
-   - `AZURE_AI_FOUNDRY_ENDPOINT`
-   - `AZURE_AI_FOUNDRY_MODEL`
-   - `AZURE_AI_PROJECT_ENDPOINT`
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-4. Deploy. The project is pre-configured with Vercel serverless functions (`maxDuration = 60s`).
-
----
-
-## 🔍 Provenance & Prototype Fallback
-
-If no external live search API (e.g. Tavily/Search Grounding) is configured in the environment, M.A.C.O.S. uses an isolated `researchProvider` abstraction that serves structured, verified benchmark data. The UI transparently indicates **"Controlled Research Data"** to ensure complete honesty without fabricating live web sources.
-
-
-
+## Acknowledgements
+- **Azure AI Foundry** – for large‑language‑model services.
+- **Supabase** – for hosted PostgreSQL persistence.
+- **Zod** – schema validation library.
+- **Next.js** – web framework providing the UI and server‑side rendering.
+- Open‑source community contributors to the TypeScript and React ecosystems.
